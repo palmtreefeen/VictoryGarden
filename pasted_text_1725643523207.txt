@@ -1,0 +1,28 @@
+I am building a web-based application called VictoryGarden.io with the following features, and I need help coding the landing page and associated functionalities:
+
+	1.	Landing Page Design: Create a visually appealing landing page that introduces VictoryGarden.io, highlighting its mission to promote self-sufficiency through urban and suburban homesteading. The landing page should include sections for a brief overview, key features, user testimonials, and a call-to-action to sign up or explore more.
+	2.	Vector Mapping Feature with Google API Integration:
+	•	Objective: Implement a vector mapping feature that uses Google Maps API to display real-time data on local produce availability, supply, and demand.
+	•	Details: The map should include:
+	•	Icons representing different produce types (e.g., bananas, tomatoes) that display details like availability, price, and whether the produce is organic.
+	•	A heat map overlay showing climate and planting zones, indicating the best areas for specific types of produce based on data such as temperature, rainfall, and soil quality.
+	•	AI-driven analytics to highlight areas with high demand or oversupply of specific produce, allowing users to identify opportunities or gaps in the market.
+	3.	User Portals and Profiles:
+	•	Buyer, Seller, and Vendor Portals: Develop distinct portals for buyers, sellers, and vendors, each with tailored functionalities:
+	•	Buyers: Access to view available produce, make purchases, and track orders.
+	•	Sellers: Options to list available produce, manage inventory, and track sales performance.
+	•	Vendors: Ability to list services or products, manage bookings or sales, and view marketplace analytics.
+	•	Profile Management: Include user profile functionality where users can manage their personal information, view transaction history, and access personalized content.
+	4.	Payment Processing and Tiers:
+	•	Payment Processing: Integrate a secure payment gateway (e.g., Stripe) to handle transactions between buyers and sellers. Ensure the system can manage different types of transactions, including one-time purchases and subscription-based payments.
+	•	Payment Tiers: Implement different payment tiers as part of a Monthly Recurring Revenue (MRR) model. This should include:
+	•	Freemium Model: Basic access with higher transaction fees.
+	•	Pro/Premium Tiers: Lower transaction fees, access to premium features like advanced analytics, priority support, and exclusive vendor offers.
+	5.	Vendor List Management:
+	•	Although the full list of vendors isn’t ready yet, the platform should allow for easy input and management of vendor information. This includes adding new vendors, categorizing them by service or product type, and displaying their profiles on the vector map with relevant icons.
+	6.	Security and Privacy:
+	•	Implement robust security measures, including user authentication, data encryption, and compliance with privacy regulations to protect user data. Ensure the app supports role-based access controls to restrict sensitive features to authorized users only.
+	7.	Scalability and Future Enhancements:
+	•	The code should be modular and scalable to accommodate future features like community gardening tips, integration with educational resources, and potential partnerships with local governments for urban farming initiatives.
+
+Please help me update/build the app structure using Next.js for server-side rendering, React for the frontend, Tailwind CSS for styling, and Firebase for authentication and database management. Ensure that the app is fully responsive and optimized for both desktop and mobile devices BUT FIRST AND FOREMOST PRIMARILY FOR A WEB BASED APPLICATION. Of course, as you can see already it has been started, but please let's proceed.

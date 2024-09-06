@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <h1>Welcome to VictoryGarden.io</h1>
+    <p>Promoting self-sufficiency through urban and suburban homesteading</p>
+    <a href="{{ url_for('register') }}" class="cta-button">Get Started</a>
+</section>
+
+<section class="features">
+    <h2>Key Features</h2>
+    <div class="feature-grid">
+        <div class="feature-item">
+            <h3>Local Produce Marketplace</h3>
+            <p>Connect with local sellers and buyers in your community</p>
+        </div>
+        <div class="feature-item">
+            <h3>AI-Driven Analytics</h3>
+            <p>Get insights on market demand and optimal growing conditions</p>
+        </div>
+        <div class="feature-item">
+            <h3>Climate and Planting Zones</h3>
+            <p>Discover the best areas for growing specific produce</p>
+        </div>
+        <div class="feature-item">
+            <h3>Urban Farming Resources</h3>
+            <p>Access guides and tools for successful urban homesteading</p>
+        </div>
+    </div>
+</section>
+
+<section class="map-preview">
+    <h2>Explore Local Produce Availability</h2>
+    <div id="map"></div>
+    <div class="map-controls">
+        <button onclick="toggleHeatmap()">Toggle Heatmap</button>
+        <button onclick="changeRadius()">Change Radius</button>
+        <button onclick="changeGradient()">Change Gradient</button>
+    </div>
+</section>
+
+<section class="testimonials">
+    <h2>What Our Users Say</h2>
+    <div class="testimonial-grid">
+        <div class="testimonial">
+            <p>"VictoryGarden.io has transformed my backyard into a thriving mini-farm. I'm now selling excess produce to my neighbors!"</p>
+            <cite>- Sarah J., Urban Farmer</cite>
+        </div>
+        <div class="testimonial">
+            <p>"The AI-driven analytics helped me identify the perfect crops for my area. My yields have increased significantly!"</p>
+            <cite>- Michael R., Suburban Homesteader</cite>
+        </div>
+        <div class="testimonial">
+            <p>"I love being able to buy fresh, local produce directly from growers in my community. It's a win-win for everyone!"</p>
+            <cite>- Emily T., Conscious Consumer</cite>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <h2>Join the Urban Farming Revolution</h2>
+    <p>Start growing, selling, or buying local produce today!</p>
+    <a href="{{ url_for('register') }}" class="cta-button">Sign Up Now</a>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=visualization"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

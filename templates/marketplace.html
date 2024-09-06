@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Marketplace</h2>
+<div class="product-grid">
+    {% for product in products %}
+        <div class="product-card">
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description }}</p>
+            <p>Price: ${{ product.price }}</p>
+            <p>Seller: {{ product.seller.username }}</p>
+            <a href="{{ url_for('product_detail', product_id=product.id) }}">View Details</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

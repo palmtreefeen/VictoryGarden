@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ product.name }}</h2>
+<p>{{ product.description }}</p>
+<p>Price: ${{ product.price }}</p>
+<p>Seller: {{ product.seller.username }}</p>
+
+{% if current_user.is_authenticated and current_user.id != product.seller_id %}
+    <form action="{{ url_for('checkout', product_id=product.id) }}" method="POST">
+        <button type="submit">Buy Now</button>
+    </form>
+{% endif %}
+{% endblock %}

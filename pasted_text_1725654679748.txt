@@ -1,0 +1,49 @@
+The warning you're seeing indicates that `google.maps.Marker` is deprecated as of February 21st, 2024, and Google recommends using `google.maps.marker.AdvancedMarkerElement` instead. To address this, you need to update your code to use the new `AdvancedMarkerElement` class for markers on Google Maps. Here’s a step-by-step guide on how to migrate from `google.maps.Marker` to `google.maps.marker.AdvancedMarkerElement`:
+
+### Steps to Migrate to `AdvancedMarkerElement`
+
+1. **Load the Advanced Marker Library**:
+   - To use `AdvancedMarkerElement`, you need to load the Advanced Markers library when loading the Google Maps JavaScript API. You can do this by adding `libraries=marker` to your script URL. Here’s an example:
+   
+   ```html
+   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=marker"></script>
+   ```
+
+2. **Replace `google.maps.Marker` with `google.maps.marker.AdvancedMarkerElement`**:
+   - Update your code to replace instances of `google.maps.Marker` with `google.maps.marker.AdvancedMarkerElement`.
+   - Here’s an example of how to modify your marker code:
+
+   **Old Code with `google.maps.Marker`:**
+   ```javascript
+   // Creating a basic marker with google.maps.Marker
+   const marker = new google.maps.Marker({
+     position: { lat: 37.7749, lng: -122.4194 },
+     map: map,
+     title: 'Hello World!',
+   });
+   ```
+
+   **Updated Code with `google.maps.marker.AdvancedMarkerElement`:**
+   ```javascript
+   // Import the required class
+   const { AdvancedMarkerElement } = google.maps.marker;
+
+   // Creating a marker with google.maps.marker.AdvancedMarkerElement
+   const marker = new AdvancedMarkerElement({
+     position: { lat: 37.7749, lng: -122.4194 },
+     map: map,
+     title: 'Hello World!',
+   });
+   ```
+
+3. **Update Marker Options**:
+   - The `AdvancedMarkerElement` might have some different or additional options compared to the traditional `google.maps.Marker`. Review the [migration guide](https://developers.google.com/maps/documentation/javascript/advanced-markers/migration) to ensure that all your marker options are compatible.
+
+4. **Test Your Implementation**:
+   - After updating your code, test it thoroughly to ensure that all markers are displayed correctly and that any custom marker features are functioning as expected.
+
+### Additional Resources:
+- **[Migration Guide for Advanced Markers](https://developers.google.com/maps/documentation/javascript/advanced-markers/migration)**: This guide provides detailed instructions on migrating from `google.maps.Marker` to `AdvancedMarkerElement`.
+- **[Advanced Markers Documentation](https://developers.google.com/maps/documentation/javascript/advanced-markers/overview)**: Refer to this documentation for more details on using `AdvancedMarkerElement`.
+
+By following these steps, you can update your markers to the new `AdvancedMarkerElement` and ensure that your application remains up-to-date with the latest Google Maps features and recommendations. If you need further assistance with this migration, feel free to ask!

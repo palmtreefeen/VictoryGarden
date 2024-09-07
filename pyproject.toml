@@ -15,6 +15,13 @@ flask-wtf = "^1.2.1"
 psycopg2-binary = "^2.9.9"
 werkzeug = "^3.0.4"
 email-validator = "^2.2.0"
+scikit-learn = "^1.5.1"
+wtforms = "^3.1.2"
+statsmodels = "^0.14.2"
+prophet = "^1.1.5"
+pandas = "^2.2.2"
+numpy = "^2.1.1"
+blinker = "^1.8.2"
 
 
 [build-system]

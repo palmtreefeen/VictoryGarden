@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>AI-Driven Analytics Dashboard</h2>
+
+<div id="productSelector">
+    <label for="product">Select a product:</label>
+    <select id="product">
+        {% for product in products %}
+        <option value="{{ product.name }}">{{ product.name }}</option>
+        {% endfor %}
+    </select>
+    <button onclick="loadAnalytics()">Load Analytics</button>
+</div>
+
+<div id="loading" style="display: none;">Loading...</div>
+<div id="error" style="display: none; color: red;"></div>
+
+<div id="analytics-container" style="display: none;">
+    <div id="predictions">
+        <h3>Demand and Supply Predictions</h3>
+        <canvas id="predictionChart"></canvas>
+    </div>
+    <div id="price-forecast">
+        <h3>Price Forecast</h3>
+        <canvas id="priceForecastChart"></canvas>
+    </div>
+    <div id="insights">
+        <h3>Market Insights</h3>
+        <ul id="insightsList"></ul>
+    </div>
+    <div id="recommendations">
+        <h3>Product Recommendations</h3>
+        <ul id="recommendationsList"></ul>
+    </div>
+    <div id="optimal-price">
+        <h3>Optimal Price</h3>
+        <p id="optimalPriceValue"></p>
+        <p id="modelPerformance"></p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let predictionChart;
+let priceForecastChart;
+
+function showLoading() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('error').style.display = 'none';
+    document.getElementById('analytics-container').style.display = 'none';
+}
+
+function hideLoading() {
+    document.getElementById('loading').style.display = 'none';
+}
+
+function showError(message) {
+    const errorElement = document.getElementById('error');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+}
+
+function loadAnalytics() {
+    const product = document.getElementById('product').value;
+    showLoading();
+    Promise.all([
+        fetchPredictions(product),
+        fetchMarketInsights(product),
+        fetchRecommendations(product),
+        fetchOptimalPrice(product)
+    ]).then(() => {
+        hideLoading();
+        document.getElementById('analytics-container').style.display = 'block';
+    }).catch(error => {
+        console.error('Error loading analytics:', error);
+        hideLoading();
+        showError('An error occurred while loading analytics. Please try again.');
+    });
+}
+
+function fetchPredictions(product) {
+    return fetch(`/api/predict/${product}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            updatePredictionChart(data);
+        });
+}
+
+function fetchMarketInsights(product) {
+    return fetch(`/api/market_insights/${product}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            updateMarketInsights(data);
+            updatePriceForecastChart(data);
+        });
+}
+
+function fetchRecommendations(product) {
+    return fetch(`/api/recommendations/${product}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            updateRecommendations(data);
+        });
+}
+
+function fetchOptimalPrice(product) {
+    return fetch(`/api/optimal_price/${product}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            updateOptimalPrice(data);
+        });
+}
+
+function updatePredictionChart(data) {
+    const ctx = document.getElementById('predictionChart').getContext('2d');
+    
+    if (predictionChart) {
+        predictionChart.destroy();
+    }
+    
+    predictionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.dates,
+            datasets: [{
+                label: 'Predicted Demand',
+                data: data.predicted_demand,
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: '+1',
+                tension: 0.1
+            }, {
+                label: 'Demand Upper Bound',
+                data: data.demand_upper,
+                borderColor: 'rgba(255, 99, 132, 0.5)',
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.1
+            }, {
+                label: 'Demand Lower Bound',
+                data: data.demand_lower,
+                borderColor: 'rgba(255, 99, 132, 0.5)',
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.1
+            }, {
+                label: 'Predicted Supply',
+                data: data.predicted_supply,
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: '+1',
+                tension: 0.1
+            }, {
+                label: 'Supply Upper Bound',
+                data: data.supply_upper,
+                borderColor: 'rgba(54, 162, 235, 0.5)',
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.1
+            }, {
+                label: 'Supply Lower Bound',
+                data: data.supply_lower,
+                borderColor: 'rgba(54, 162, 235, 0.5)',
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Demand and Supply Predictions for ${data.product}`
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updatePriceForecastChart(data) {
+    const ctx = document.getElementById('priceForecastChart').getContext('2d');
+    
+    if (priceForecastChart) {
+        priceForecastChart.destroy();
+    }
+    
+    priceForecastChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 30}, (_, i) => i + 1),
+            datasets: [{
+                label: 'Price Forecast',
+                data: data.price_forecast,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Price Forecast for ${data.product}`
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Days from now'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Price'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateMarketInsights(data) {
+    const insightsList = document.getElementById('insightsList');
+    insightsList.innerHTML = `
+        <li>Average Demand: ${data.average_demand.toFixed(2)}</li>
+        <li>Average Supply: ${data.average_supply.toFixed(2)}</li>
+        <li>Average Price: $${data.average_price.toFixed(2)}</li>
+        <li>Demand Trend: ${data.demand_trend}</li>
+        <li>Supply Trend: ${data.supply_trend}</li>
+        <li>Price Trend: ${data.price_trend}</li>
+        <li>Demand Volatility: ${(data.demand_volatility * 100).toFixed(2)}%</li>
+        <li>Supply Volatility: ${(data.supply_volatility * 100).toFixed(2)}%</li>
+        <li>Price Volatility: ${(data.price_volatility * 100).toFixed(2)}%</li>
+        <li>Seasonal Demand: ${data.seasonal_demand}</li>
+        <li>Seasonal Supply: ${data.seasonal_supply}</li>
+        <li>Demand/Supply Ratio: ${data.demand_supply_ratio.toFixed(2)}</li>
+        <li>Price Elasticity: ${data.price_elasticity.toFixed(2)}</li>
+        <li>Weather-Demand Correlation: ${data.weather_demand_correlation.toFixed(2)}</li>
+        <li>Weather-Supply Correlation: ${data.weather_supply_correlation.toFixed(2)}</li>
+    `;
+}
+
+function updateRecommendations(data) {
+    const recommendationsList = document.getElementById('recommendationsList');
+    recommendationsList.innerHTML = data.map(product => `<li>${product}</li>`).join('');
+}
+
+function updateOptimalPrice(data) {
+    const optimalPriceValue = document.getElementById('optimalPriceValue');
+    optimalPriceValue.textContent = `$${data.optimal_price.toFixed(2)}`;
+    
+    const modelPerformance = document.getElementById('modelPerformance');
+    modelPerformance.textContent = `Model Performance: MSE = ${data.model_mse.toFixed(4)}, R² = ${data.model_r2.toFixed(4)}`;
+}
+
+// Load initial analytics for the first product
+window.onload = () => {
+    const productSelect = document.getElementById('product');
+    if (productSelect.options.length > 0) {
+        productSelect.selectedIndex = 0;
+        loadAnalytics();
+    }
+};
+</script>
+{% endblock %}

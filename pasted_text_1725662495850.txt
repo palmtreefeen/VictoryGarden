@@ -1,0 +1,91 @@
+The `fbprophet` package, now known as `prophet`, is often used for time series forecasting, but it can sometimes encounter installation issues due to dependencies, especially in environments like Replit. Here are steps to help you resolve the installation issue or suggest an alternative library if needed:
+
+### 1. **Installing `prophet` in Replit:**
+
+To install `prophet` in Replit, follow these steps:
+
+#### Step 1: Install Dependencies
+`prophet` requires several dependencies, including `pystan`. Start by installing `pystan`:
+
+- In the Replit shell or the package manager, run:
+  ```bash
+  pip install pystan==2.19.1.1
+  ```
+
+#### Step 2: Install `prophet`
+- After installing `pystan`, try installing `prophet`:
+  ```bash
+  pip install prophet
+  ```
+  
+If Replit encounters issues with installing `prophet` directly, you might need to specify it in the `replit.nix` file to handle more complex dependencies. Here’s an example of how you could modify the `replit.nix`:
+
+#### Step 3: Modify `replit.nix` (if applicable)
+- Open `replit.nix` and update it to include the required dependencies:
+  
+  ```nix
+  { pkgs }: {
+    deps = [
+      pkgs.python38Full
+      pkgs.python38Packages.pip
+      (pkgs.python38Packages.buildPythonPackage rec {
+        pname = "prophet";
+        version = "1.1.1";
+        src = pkgs.fetchPypi {
+          inherit pname version;
+          sha256 = "sha256-hash-for-prophet";
+        };
+        propagatedBuildInputs = with pkgs.python38Packages; [ numpy pandas matplotlib pystan ];
+      })
+    ];
+  }
+  ```
+
+Replace `"sha256-hash-for-prophet"` with the correct hash for the version of `prophet` you're using.
+
+### 2. **Alternative Library: `statsmodels` or `sktime`**
+
+If you continue facing issues, consider using an alternative library:
+
+#### **Option A: `statsmodels`**
+- `statsmodels` is a well-known library for statistical modeling, including time series forecasting.
+  
+  **Install `statsmodels`:**
+  ```bash
+  pip install statsmodels
+  ```
+  
+  **Basic Usage for ARIMA:**
+  ```python
+  from statsmodels.tsa.arima.model import ARIMA
+
+  # Example: Creating an ARIMA model
+  model = ARIMA(your_data, order=(1, 1, 1))
+  model_fit = model.fit()
+  forecast = model_fit.forecast(steps=10)
+  print(forecast)
+  ```
+
+#### **Option B: `sktime`**
+- `sktime` is an excellent alternative for time series analysis and forecasting, providing a wide range of models, including Prophet-like functionalities.
+
+  **Install `sktime`:**
+  ```bash
+  pip install sktime
+  ```
+  
+  **Basic Usage Example:**
+  ```python
+  from sktime.forecasting.arima import AutoARIMA
+
+  # Example: Auto ARIMA model
+  forecaster = AutoARIMA()
+  forecaster.fit(your_data)
+  y_pred = forecaster.predict(fh=[1, 2, 3, 4, 5])
+  print(y_pred)
+  ```
+
+### 3. **Check Replit Build Logs:**
+- Make sure to check the build logs in Replit for specific error messages when installing `prophet` or its alternatives. This can help identify missing dependencies or other issues that may need addressing.
+
+By following these steps, you should be able to either get `prophet` installed correctly or use a suitable alternative for your AI-driven analytics needs. Let me know if you need further assistance with any of these options!

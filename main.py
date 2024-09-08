@@ -141,6 +141,12 @@ def analytics_dashboard():
     products = Product.query.all()
     return render_template('analytics.html', products=products)
 
+@app.route('/api/produce_data')
+def get_produce_data():
+    # Your logic to fetch and return produce data
+    data = {...}  # Replace with actual data
+    return jsonify(data)
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

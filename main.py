@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -22,16 +22,12 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-# Create a blueprint for authentication
-from flask import Blueprint
 
 auth = Blueprint('auth', __name__)
 
@@ -43,7 +39,8 @@ def login():
         if user and check_password_hash(user.password, form.password.data):
             login_user(user)
             flash('Logged in successfully.', 'success')
-            return redirect(url_for('index'))
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('index'))
         else:
             flash('Invalid email or password.', 'error')
     return render_template('login.html', form=form)
@@ -71,7 +68,6 @@ def register():
         return redirect(url_for('auth.login'))
     return render_template('register.html', form=form)
 
-# Register the blueprint
 app.register_blueprint(auth, url_prefix='/auth')
 
 @app.route('/')
@@ -140,6 +136,19 @@ def optimal_price(product_name):
 def analytics_dashboard():
     products = Product.query.all()
     return render_template('analytics.html', products=products)
+
+@app.route('/api/produce_data')
+def produce_data():
+    try:
+        produce_list = [
+            {"name": "Tomatoes", "lat": 40.7128, "lng": -74.0060, "price": 2.99, "organic": True},
+            {"name": "Lettuce", "lat": 40.7282, "lng": -73.7949, "price": 1.99, "organic": False},
+            {"name": "Carrots", "lat": 40.7489, "lng": -73.9680, "price": 1.49, "organic": True},
+        ]
+        return jsonify(produce_list)
+    except Exception as e:
+        logger.error(f"Error fetching produce data: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching produce data"}), 500
 
 if __name__ == '__main__':
     with app.app_context():

@@ -4,8 +4,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime, timedelta
-from statsmodels.tsa.arima.model import ARIMA
-from prophet import Prophet
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 
@@ -20,48 +19,50 @@ def generate_mock_data(days=365):
 def predict_demand_supply(product_name):
     dates, demand, supply, price, weather = generate_mock_data()
     
-    # Prepare data for Prophet
-    df_demand = pd.DataFrame({'ds': dates, 'y': demand})
-    df_supply = pd.DataFrame({'ds': dates, 'y': supply})
+    df = pd.DataFrame({
+        'date': dates,
+        'demand': demand,
+        'supply': supply,
+        'price': price,
+        'weather': weather
+    })
+    df.set_index('date', inplace=True)
     
-    # Add weather as an additional regressor
-    df_demand['weather'] = weather
-    df_supply['weather'] = weather
+    model_demand = SARIMAX(df['demand'], exog=df[['weather', 'price']], order=(1,1,1), seasonal_order=(1,1,1,12))
+    model_supply = SARIMAX(df['supply'], exog=df[['weather', 'price']], order=(1,1,1), seasonal_order=(1,1,1,12))
     
-    # Fit Prophet models with additional regressor
-    model_demand = Prophet()
-    model_supply = Prophet()
-    model_demand.add_regressor('weather')
-    model_supply.add_regressor('weather')
-    model_demand.fit(df_demand)
-    model_supply.fit(df_supply)
+    results_demand = model_demand.fit()
+    results_supply = model_supply.fit()
     
-    # Make future predictions
-    future_dates = model_demand.make_future_dataframe(periods=30)
-    future_dates['weather'] = np.random.normal(20, 5, size=len(future_dates)) + np.sin(np.arange(len(future_dates)) * 2 * np.pi / 365) * 10
-    forecast_demand = model_demand.predict(future_dates)
-    forecast_supply = model_supply.predict(future_dates)
+    future_dates = pd.date_range(start=df.index[-1] + timedelta(days=1), periods=30)
+    future_weather = np.random.normal(20, 5, size=30) + np.sin(np.arange(30) * 2 * np.pi / 365) * 10
+    future_price = np.random.uniform(1.5, 5.0, size=30) + np.sin(np.arange(30) * 2 * np.pi / 60) * 0.5
+    
+    future_exog = pd.DataFrame({'weather': future_weather, 'price': future_price}, index=future_dates)
+    
+    forecast_demand = results_demand.get_forecast(steps=30, exog=future_exog)
+    forecast_supply = results_supply.get_forecast(steps=30, exog=future_exog)
     
     return {
         'product': product_name,
-        'dates': future_dates['ds'].dt.strftime('%Y-%m-%d').tolist()[-30:],
-        'predicted_demand': forecast_demand['yhat'].tolist()[-30:],
-        'predicted_supply': forecast_supply['yhat'].tolist()[-30:],
-        'demand_lower': forecast_demand['yhat_lower'].tolist()[-30:],
-        'demand_upper': forecast_demand['yhat_upper'].tolist()[-30:],
-        'supply_lower': forecast_supply['yhat_lower'].tolist()[-30:],
-        'supply_upper': forecast_supply['yhat_upper'].tolist()[-30:]
+        'dates': future_dates.strftime('%Y-%m-%d').tolist(),
+        'predicted_demand': forecast_demand.predicted_mean.tolist(),
+        'predicted_supply': forecast_supply.predicted_mean.tolist(),
+        'demand_lower': forecast_demand.conf_int()['lower demand'].tolist(),
+        'demand_upper': forecast_demand.conf_int()['upper demand'].tolist(),
+        'supply_lower': forecast_supply.conf_int()['lower supply'].tolist(),
+        'supply_upper': forecast_supply.conf_int()['upper supply'].tolist(),
+        'model_summary_demand': results_demand.summary().as_text(),
+        'model_summary_supply': results_supply.summary().as_text()
     }
 
 def get_market_insights(product_name):
     dates, demand, supply, price, weather = generate_mock_data()
     
-    # ARIMA model for price forecasting
-    model = ARIMA(price, order=(1,1,1))
+    model = SARIMAX(price, order=(1,1,1), seasonal_order=(1,1,1,12))
     results = model.fit()
     price_forecast = results.forecast(steps=30)
     
-    # Advanced metrics
     avg_demand = np.mean(demand)
     avg_supply = np.mean(supply)
     avg_price = np.mean(price)
@@ -80,7 +81,6 @@ def get_market_insights(product_name):
     demand_supply_ratio = avg_demand / avg_supply if avg_supply != 0 else float('inf')
     price_elasticity = (np.diff(demand) / demand[:-1]).mean() / (np.diff(price) / price[:-1]).mean()
     
-    # Weather impact analysis
     weather_demand_corr = np.corrcoef(weather, demand)[0, 1]
     weather_supply_corr = np.corrcoef(weather, supply)[0, 1]
     
@@ -101,13 +101,13 @@ def get_market_insights(product_name):
         'price_elasticity': price_elasticity,
         'price_forecast': price_forecast.tolist(),
         'weather_demand_correlation': weather_demand_corr,
-        'weather_supply_correlation': weather_supply_corr
+        'weather_supply_correlation': weather_supply_corr,
+        'model_summary': results.summary().as_text()
     }
 
 def get_product_recommendations(product_name):
     all_products = ["Tomatoes", "Lettuce", "Carrots", "Cucumbers", "Peppers", "Squash", "Strawberries", "Herbs", "Onions", "Potatoes"]
     
-    # Simulate a more sophisticated recommendation system
     product_features = {p: np.random.rand(5) for p in all_products}
     target_features = product_features[product_name]
     
@@ -132,23 +132,25 @@ def get_optimal_price(product_name):
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
     
-    # Generate a range of possible demand, supply, and weather values
     possible_demand = np.linspace(np.min(demand), np.max(demand), 100)
     possible_supply = np.linspace(np.min(supply), np.max(supply), 100)
     possible_weather = np.linspace(np.min(weather), np.max(weather), 100)
     
-    # Create a grid of all possible combinations
     demand_grid, supply_grid, weather_grid = np.meshgrid(possible_demand, possible_supply, possible_weather)
     X_grid = np.column_stack((demand_grid.ravel(), supply_grid.ravel(), weather_grid.ravel()))
     
-    # Predict prices for all combinations
     predicted_prices = model.predict(X_grid)
     
-    # Find the optimal price (maximum in this case, but could be adjusted based on business logic)
     optimal_price = np.max(predicted_prices)
+    
+    feature_importance = pd.DataFrame({
+        'feature': ['demand', 'supply', 'weather'],
+        'importance': model.feature_importances_
+    }).sort_values('importance', ascending=False)
     
     return {
         'optimal_price': optimal_price,
         'model_mse': mse,
-        'model_r2': r2
+        'model_r2': r2,
+        'feature_importance': feature_importance.to_dict(orient='records')
     }

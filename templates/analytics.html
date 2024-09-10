@@ -38,6 +38,14 @@
         <p id="optimalPriceValue"></p>
         <p id="modelPerformance"></p>
     </div>
+    <div id="feature-importance">
+        <h3>Feature Importance</h3>
+        <canvas id="featureImportanceChart"></canvas>
+    </div>
+    <div id="model-summary">
+        <h3>Model Summary</h3>
+        <pre id="modelSummaryText"></pre>
+    </div>
 </div>
 
 {% endblock %}
@@ -47,6 +55,7 @@
 <script>
 let predictionChart;
 let priceForecastChart;
+let featureImportanceChart;
 
 function showLoading() {
     document.getElementById('loading').style.display = 'block';
@@ -92,6 +101,7 @@ function fetchPredictions(product) {
         })
         .then(data => {
             updatePredictionChart(data);
+            updateModelSummary(data.model_summary_demand, 'Demand Model Summary');
         });
 }
 
@@ -106,6 +116,7 @@ function fetchMarketInsights(product) {
         .then(data => {
             updateMarketInsights(data);
             updatePriceForecastChart(data);
+            updateModelSummary(data.model_summary, 'Price Forecast Model Summary');
         });
 }
 
@@ -132,6 +143,7 @@ function fetchOptimalPrice(product) {
         })
         .then(data => {
             updateOptimalPrice(data);
+            updateFeatureImportance(data.feature_importance);
         });
 }
 
@@ -302,6 +314,51 @@ function updateOptimalPrice(data) {
     
     const modelPerformance = document.getElementById('modelPerformance');
     modelPerformance.textContent = `Model Performance: MSE = ${data.model_mse.toFixed(4)}, R² = ${data.model_r2.toFixed(4)}`;
+}
+
+function updateFeatureImportance(data) {
+    const ctx = document.getElementById('featureImportanceChart').getContext('2d');
+    
+    if (featureImportanceChart) {
+        featureImportanceChart.destroy();
+    }
+    
+    featureImportanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(item => item.feature),
+            datasets: [{
+                label: 'Feature Importance',
+                data: data.map(item => item.importance),
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Feature Importance for Price Prediction'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Importance'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateModelSummary(summary, title) {
+    const modelSummaryText = document.getElementById('modelSummaryText');
+    modelSummaryText.textContent = `${title}:\n\n${summary}`;
 }
 
 // Load initial analytics for the first product

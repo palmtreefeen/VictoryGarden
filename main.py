@@ -4,13 +4,14 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf.csrf import CSRFProtect, CSRFError
 import os
-from models import db, User, Product, Transaction, Service, Booking
+from models import db, User, Product, Transaction, Service, Booking, Subscription
 from forms import LoginForm, RegistrationForm, ProductForm, ServiceForm
 from utils import get_stripe_publishable_key, create_stripe_checkout_session
 import random
 from email_validator import validate_email, EmailNotValidError
 import logging
 from analytics import predict_demand_supply, get_market_insights, get_product_recommendations, get_optimal_price
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
@@ -163,9 +164,60 @@ def create_service():
         return redirect(url_for('vendor_portal'))
     return render_template('create_service.html', form=form)
 
-# Add more routes for editing and deleting products and services
+@app.route('/subscriptions')
+def subscriptions():
+    subscriptions = Subscription.query.all()
+    return render_template('subscriptions.html', subscriptions=subscriptions)
+
+@app.route('/subscribe/<int:subscription_id>', methods=['POST'])
+@login_required
+def subscribe(subscription_id):
+    subscription = Subscription.query.get_or_404(subscription_id)
+    current_user.subscription_tier = subscription.name
+    current_user.subscription_start_date = datetime.utcnow()
+    current_user.subscription_end_date = datetime.utcnow() + timedelta(days=30)
+    db.session.commit()
+    flash(f'You have successfully subscribed to the {subscription.name} tier.', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/cancel_subscription', methods=['POST'])
+@login_required
+def cancel_subscription():
+    current_user.subscription_tier = 'free'
+    current_user.subscription_end_date = datetime.utcnow()
+    db.session.commit()
+    flash('Your subscription has been canceled.', 'info')
+    return redirect(url_for('profile'))
+
+def add_default_subscriptions():
+    subscriptions = [
+        {
+            'name': 'Free',
+            'price': 0,
+            'features': 'Basic access, Higher transaction fees'
+        },
+        {
+            'name': 'Pro',
+            'price': 9.99,
+            'features': 'Lower transaction fees, Priority support, Advanced analytics'
+        },
+        {
+            'name': 'Premium',
+            'price': 19.99,
+            'features': 'Lowest transaction fees, 24/7 support, Advanced analytics, Exclusive vendor offers'
+        }
+    ]
+
+    for sub in subscriptions:
+        existing_subscription = Subscription.query.filter_by(name=sub['name']).first()
+        if not existing_subscription:
+            new_subscription = Subscription(name=sub['name'], price=sub['price'], features=sub['features'])
+            db.session.add(new_subscription)
+    
+    db.session.commit()
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        add_default_subscriptions()
     app.run(host='0.0.0.0', port=5000)

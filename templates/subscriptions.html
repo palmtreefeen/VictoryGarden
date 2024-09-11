@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Subscription Plans</h2>
+<div class="subscription-grid">
+    {% for subscription in subscriptions %}
+        <div class="subscription-card">
+            <h3>{{ subscription.name }}</h3>
+            <p>Price: ${{ subscription.price }}/month</p>
+            <h4>Features:</h4>
+            <ul>
+                {% for feature in subscription.features.split(',') %}
+                    <li>{{ feature.strip() }}</li>
+                {% endfor %}
+            </ul>
+            {% if current_user.is_authenticated %}
+                {% if current_user.subscription_tier == subscription.name %}
+                    <p>Current Plan</p>
+                {% else %}
+                    <form action="{{ url_for('subscribe', subscription_id=subscription.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Log in to Subscribe</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -5,6 +5,21 @@
 <p>Email: {{ current_user.email }}</p>
 <p>User Type: {{ current_user.user_type }}</p>
 
+<h3>Subscription Information</h3>
+<p>Current Tier: {{ current_user.subscription_tier }}</p>
+{% if current_user.subscription_end_date %}
+    <p>Subscription End Date: {{ current_user.subscription_end_date.strftime('%Y-%m-%d') }}</p>
+{% endif %}
+
+{% if current_user.subscription_tier != 'free' %}
+    <form action="{{ url_for('cancel_subscription') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel your subscription?')">Cancel Subscription</button>
+    </form>
+{% else %}
+    <a href="{{ url_for('subscriptions') }}" class="btn btn-primary">Upgrade Subscription</a>
+{% endif %}
+
 {% if current_user.user_type == 'seller' %}
     <h3>Your Products</h3>
     <ul>
@@ -16,5 +31,17 @@
         {% endfor %}
     </ul>
     <a href="{{ url_for('create_product') }}">Add New Product</a>
+{% endif %}
+
+{% if current_user.user_type == 'vendor' %}
+    <h3>Your Services</h3>
+    <ul>
+        {% for service in current_user.services %}
+            <li>
+                {{ service.name }} - ${{ service.price }}
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('create_service') }}">Add New Service</a>
 {% endif %}
 {% endblock %}

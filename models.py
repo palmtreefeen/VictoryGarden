@@ -12,6 +12,9 @@ class User(UserMixin, db.Model):
     user_type = db.Column(db.String(20), nullable=False, default='buyer')
     products = db.relationship('Product', backref='seller', lazy=True)
     services = db.relationship('Service', backref='vendor', lazy=True)
+    subscription_tier = db.Column(db.String(20), nullable=False, default='free')
+    subscription_start_date = db.Column(db.DateTime, nullable=True)
+    subscription_end_date = db.Column(db.DateTime, nullable=True)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,3 +45,9 @@ class Booking(db.Model):
     booking_date = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(20), nullable=False, default='pending')
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+class Subscription(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    features = db.Column(db.Text, nullable=False)

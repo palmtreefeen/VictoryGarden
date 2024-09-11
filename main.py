@@ -4,8 +4,8 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf.csrf import CSRFProtect, CSRFError
 import os
-from models import db, User, Product, Transaction
-from forms import LoginForm, RegistrationForm, ProductForm
+from models import db, User, Product, Transaction, Service, Booking
+from forms import LoginForm, RegistrationForm, ProductForm, ServiceForm
 from utils import get_stripe_publishable_key, create_stripe_checkout_session
 import random
 from email_validator import validate_email, EmailNotValidError
@@ -61,7 +61,7 @@ def register():
             return render_template('register.html', form=form)
         
         hashed_password = generate_password_hash(form.password.data)
-        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        new_user = User(username=form.username.data, email=form.email.data, password=hashed_password, user_type=form.user_type.data)
         db.session.add(new_user)
         db.session.commit()
         flash('Registration successful. Please log in.', 'success')
@@ -91,85 +91,79 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
-@app.route('/api/predict/<product_name>')
+@app.route('/buyer_portal')
 @login_required
-def predict_product(product_name):
-    try:
-        prediction = predict_demand_supply(product_name)
-        return jsonify(prediction)
-    except Exception as e:
-        logger.error(f"Error predicting demand and supply for {product_name}: {str(e)}")
-        return jsonify({"error": "An error occurred while predicting demand and supply"}), 500
-
-@app.route('/api/market_insights/<product_name>')
-@login_required
-def market_insights(product_name):
-    try:
-        insights = get_market_insights(product_name)
-        return jsonify(insights)
-    except Exception as e:
-        logger.error(f"Error getting market insights for {product_name}: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching market insights"}), 500
-
-@app.route('/api/recommendations/<product_name>')
-@login_required
-def product_recommendations(product_name):
-    try:
-        recommendations = get_product_recommendations(product_name)
-        return jsonify(recommendations)
-    except Exception as e:
-        logger.error(f"Error getting product recommendations for {product_name}: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching product recommendations"}), 500
-
-@app.route('/api/optimal_price/<product_name>')
-@login_required
-def optimal_price(product_name):
-    try:
-        price_data = get_optimal_price(product_name)
-        return jsonify(price_data)
-    except Exception as e:
-        logger.error(f"Error calculating optimal price for {product_name}: {str(e)}")
-        return jsonify({"error": "An error occurred while calculating the optimal price"}), 500
-
-@app.route('/analytics')
-@login_required
-def analytics_dashboard():
+def buyer_portal():
+    if current_user.user_type != 'buyer':
+        flash('Access denied. This portal is for buyers only.', 'error')
+        return redirect(url_for('index'))
     products = Product.query.all()
-    return render_template('analytics.html', products=products)
+    orders = Transaction.query.filter_by(buyer_id=current_user.id).all()
+    return render_template('buyer_portal.html', products=products, orders=orders)
 
-@app.route('/api/produce_data')
-def produce_data():
-    try:
-        produce_list = [
-            {"name": "Tomatoes", "lat": 40.7128, "lng": -74.0060, "price": 2.99, "organic": True},
-            {"name": "Lettuce", "lat": 40.7282, "lng": -73.7949, "price": 1.99, "organic": False},
-            {"name": "Carrots", "lat": 40.7489, "lng": -73.9680, "price": 1.49, "organic": True},
-        ]
-        return jsonify(produce_list)
-    except Exception as e:
-        logger.error(f"Error fetching produce data: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching produce data"}), 500
+@app.route('/seller_portal')
+@login_required
+def seller_portal():
+    if current_user.user_type != 'seller':
+        flash('Access denied. This portal is for sellers only.', 'error')
+        return redirect(url_for('index'))
+    products = Product.query.filter_by(seller_id=current_user.id).all()
+    sales = Transaction.query.join(Product).filter(Product.seller_id == current_user.id).all()
+    return render_template('seller_portal.html', products=products, sales=sales)
 
-@app.route('/api/climate_zones')
-def climate_zones():
-    try:
-        # More detailed mock data for climate and planting zones
-        climate_data = [
-            {"lat": 40.7128, "lng": -74.0060, "weight": 0.8, "zone": "7b", "temp_range": "5 to 10°F"},
-            {"lat": 40.7282, "lng": -73.7949, "weight": 0.6, "zone": "7a", "temp_range": "0 to 5°F"},
-            {"lat": 40.7489, "lng": -73.9680, "weight": 0.7, "zone": "7b", "temp_range": "5 to 10°F"},
-            {"lat": 40.6782, "lng": -73.9442, "weight": 0.9, "zone": "7b", "temp_range": "5 to 10°F"},
-            {"lat": 40.8075, "lng": -73.9619, "weight": 0.5, "zone": "7a", "temp_range": "0 to 5°F"},
-            {"lat": 40.7587, "lng": -73.9787, "weight": 0.8, "zone": "7b", "temp_range": "5 to 10°F"},
-            {"lat": 40.6872, "lng": -74.0229, "weight": 0.7, "zone": "7b", "temp_range": "5 to 10°F"},
-            {"lat": 40.7829, "lng": -73.9654, "weight": 0.6, "zone": "7a", "temp_range": "0 to 5°F"},
-            {"lat": 40.7174, "lng": -74.0121, "weight": 0.8, "zone": "7b", "temp_range": "5 to 10°F"},
-            {"lat": 40.7605, "lng": -73.9933, "weight": 0.7, "zone": "7b", "temp_range": "5 to 10°F"},
-        ]
-        return jsonify(climate_data)
-    except Exception as e:
-        logger.error(f"Error fetching climate zone data: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching climate zone data"}), 500
+@app.route('/vendor_portal')
+@login_required
+def vendor_portal():
+    if current_user.user_type != 'vendor':
+        flash('Access denied. This portal is for vendors only.', 'error')
+        return redirect(url_for('index'))
+    services = Service.query.filter_by(vendor_id=current_user.id).all()
+    bookings = Booking.query.filter_by(vendor_id=current_user.id).all()
+    return render_template('vendor_portal.html', services=services, bookings=bookings)
+
+@app.route('/create_product', methods=['GET', 'POST'])
+@login_required
+def create_product():
+    if current_user.user_type != 'seller':
+        flash('Access denied. Only sellers can create products.', 'error')
+        return redirect(url_for('index'))
+    
+    form = ProductForm()
+    if form.validate_on_submit():
+        new_product = Product(
+            name=form.name.data,
+            description=form.description.data,
+            price=form.price.data,
+            seller_id=current_user.id
+        )
+        db.session.add(new_product)
+        db.session.commit()
+        flash('Product created successfully.', 'success')
+        return redirect(url_for('seller_portal'))
+    return render_template('create_product.html', form=form)
+
+@app.route('/create_service', methods=['GET', 'POST'])
+@login_required
+def create_service():
+    if current_user.user_type != 'vendor':
+        flash('Access denied. Only vendors can create services.', 'error')
+        return redirect(url_for('index'))
+    
+    form = ServiceForm()
+    if form.validate_on_submit():
+        new_service = Service(
+            name=form.name.data,
+            description=form.description.data,
+            price=form.price.data,
+            vendor_id=current_user.id
+        )
+        db.session.add(new_service)
+        db.session.commit()
+        flash('Service created successfully.', 'success')
+        return redirect(url_for('vendor_portal'))
+    return render_template('create_service.html', form=form)
+
+# Add more routes for editing and deleting products and services
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Buyer Portal</h2>
+<p>Welcome, {{ current_user.username }}!</p>
+
+<h3>Available Products</h3>
+<div class="product-grid">
+    {% for product in products %}
+        <div class="product-card">
+            <h4>{{ product.name }}</h4>
+            <p>{{ product.description }}</p>
+            <p>Price: ${{ product.price }}</p>
+            <p>Seller: {{ product.seller.username }}</p>
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
+        </div>
+    {% endfor %}
+</div>
+
+<h3>Your Orders</h3>
+<!-- Add a section to display the user's orders -->
+
+{% endblock %}

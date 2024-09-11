@@ -72,7 +72,7 @@ app.register_blueprint(auth, url_prefix='/auth')
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', google_maps_api_key=os.environ.get('GOOGLE_MAPS_API_KEY'))
 
 @app.route('/marketplace')
 def marketplace():
@@ -149,6 +149,27 @@ def produce_data():
     except Exception as e:
         logger.error(f"Error fetching produce data: {str(e)}")
         return jsonify({"error": "An error occurred while fetching produce data"}), 500
+
+@app.route('/api/climate_zones')
+def climate_zones():
+    try:
+        # More detailed mock data for climate and planting zones
+        climate_data = [
+            {"lat": 40.7128, "lng": -74.0060, "weight": 0.8, "zone": "7b", "temp_range": "5 to 10°F"},
+            {"lat": 40.7282, "lng": -73.7949, "weight": 0.6, "zone": "7a", "temp_range": "0 to 5°F"},
+            {"lat": 40.7489, "lng": -73.9680, "weight": 0.7, "zone": "7b", "temp_range": "5 to 10°F"},
+            {"lat": 40.6782, "lng": -73.9442, "weight": 0.9, "zone": "7b", "temp_range": "5 to 10°F"},
+            {"lat": 40.8075, "lng": -73.9619, "weight": 0.5, "zone": "7a", "temp_range": "0 to 5°F"},
+            {"lat": 40.7587, "lng": -73.9787, "weight": 0.8, "zone": "7b", "temp_range": "5 to 10°F"},
+            {"lat": 40.6872, "lng": -74.0229, "weight": 0.7, "zone": "7b", "temp_range": "5 to 10°F"},
+            {"lat": 40.7829, "lng": -73.9654, "weight": 0.6, "zone": "7a", "temp_range": "0 to 5°F"},
+            {"lat": 40.7174, "lng": -74.0121, "weight": 0.8, "zone": "7b", "temp_range": "5 to 10°F"},
+            {"lat": 40.7605, "lng": -73.9933, "weight": 0.7, "zone": "7b", "temp_range": "5 to 10°F"},
+        ]
+        return jsonify(climate_data)
+    except Exception as e:
+        logger.error(f"Error fetching climate zone data: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching climate zone data"}), 500
 
 if __name__ == '__main__':
     with app.app_context():

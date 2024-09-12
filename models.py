@@ -18,7 +18,17 @@ class User(UserMixin, db.Model):
     experience = db.Column(db.String(20), nullable=True)
     interests = db.Column(db.String(200), nullable=True)
     location = db.Column(db.String(100), nullable=True)
+    garden_size = db.Column(db.String(20), nullable=True)
+    soil_type = db.Column(db.String(20), nullable=True)
+    sunlight = db.Column(db.String(20), nullable=True)
+    watering_frequency = db.Column(db.String(20), nullable=True)
+    preferred_products = db.Column(db.String(200), nullable=True)
+    organic_preference = db.Column(db.Boolean, default=False)
+    climate_zone = db.Column(db.String(10), nullable=True)
+    goals = db.Column(db.Text, nullable=True)
+    challenges = db.Column(db.Text, nullable=True)
     onboarding_complete = db.Column(db.Boolean, default=False)
+    onboarding_progress = db.Column(db.Integer, default=0)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -28,6 +38,7 @@ class Product(db.Model):
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     tags = db.Column(db.String(200))
     location = db.Column(db.String(100))
+    is_organic = db.Column(db.Boolean, default=False)
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)

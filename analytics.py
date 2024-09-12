@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
+from models import Product, User
 
 def generate_mock_data(days=365):
     dates = [datetime.now() - timedelta(days=i) for i in range(days)]
@@ -105,17 +106,50 @@ def get_market_insights(product_name):
         'model_summary': results.summary().as_text()
     }
 
-def get_product_recommendations(product_name):
-    all_products = ["Tomatoes", "Lettuce", "Carrots", "Cucumbers", "Peppers", "Squash", "Strawberries", "Herbs", "Onions", "Potatoes"]
+def get_product_recommendations(user):
+    all_products = Product.query.all()
     
-    product_features = {p: np.random.rand(5) for p in all_products}
-    target_features = product_features[product_name]
+    user_preferences = {
+        'experience': user.experience,
+        'interests': user.interests.split(',') if user.interests else [],
+        'garden_size': user.garden_size,
+        'preferred_products': user.preferred_products.split(',') if user.preferred_products else [],
+        'organic_preference': user.organic_preference
+    }
     
-    similarities = {p: np.dot(target_features, f) / (np.linalg.norm(target_features) * np.linalg.norm(f)) 
-                    for p, f in product_features.items() if p != product_name}
+    recommended_products = []
+    for product in all_products:
+        score = 0
+        
+        # Check if the product matches user's interests
+        if any(interest.lower() in product.tags.lower() for interest in user_preferences['interests']):
+            score += 2
+        
+        # Check if the product is in user's preferred products list
+        if product.name in user_preferences['preferred_products']:
+            score += 3
+        
+        # Check if the product matches user's organic preference
+        if user_preferences['organic_preference'] and product.is_organic:
+            score += 2
+        
+        # Adjust score based on user's experience level
+        if user_preferences['experience'] == 'beginner' and 'easy' in product.tags.lower():
+            score += 1
+        elif user_preferences['experience'] == 'expert' and 'advanced' in product.tags.lower():
+            score += 1
+        
+        # Adjust score based on garden size
+        if user_preferences['garden_size'] == 'small' and 'compact' in product.tags.lower():
+            score += 1
+        elif user_preferences['garden_size'] == 'large' and 'large-scale' in product.tags.lower():
+            score += 1
+        
+        recommended_products.append((product, score))
     
-    recommendations = sorted(similarities.items(), key=lambda x: x[1], reverse=True)[:3]
-    return [r[0] for r in recommendations]
+    # Sort products by score in descending order and return top 5
+    recommended_products.sort(key=lambda x: x[1], reverse=True)
+    return [product for product, score in recommended_products[:5]]
 
 def get_optimal_price(product_name):
     dates, demand, supply, price, weather = generate_mock_data()

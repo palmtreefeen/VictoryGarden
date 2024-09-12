@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Onboarding Results</h2>
+
+<div class="progress-bar">
+    <div class="progress" style="width: {{ progress }}%;">{{ progress }}%</div>
+</div>
+
+{% if progress < 100 %}
+<p>Your profile is {{ progress }}% complete. Fill out more information to get better recommendations!</p>
+<a href="{{ url_for('onboard', user_type=user.user_type) }}" class="btn btn-primary">Continue Onboarding</a>
+{% else %}
+<p>Congratulations! Your profile is complete.</p>
+{% endif %}
+
+<h3>Suggested Products for You</h3>
+<div class="product-grid">
+    {% for product in suggested_products %}
+    <div class="product-card">
+        <h4>{{ product.name }}</h4>
+        <p>{{ product.description }}</p>
+        <p>Price: ${{ product.price }}</p>
+        <p>Seller: {{ product.seller.username }}</p>
+        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-secondary">View Details</a>
+    </div>
+    {% endfor %}
+</div>
+
+<h3>Your Gardening Profile</h3>
+<ul>
+    <li>Experience: {{ user.experience }}</li>
+    <li>Interests: {{ user.interests }}</li>
+    <li>Location: {{ user.location }}</li>
+    <li>Garden Size: {{ user.garden_size }}</li>
+    <li>Soil Type: {{ user.soil_type }}</li>
+    <li>Sunlight Exposure: {{ user.sunlight }}</li>
+    <li>Watering Frequency: {{ user.watering_frequency }}</li>
+    <li>Preferred Products: {{ user.preferred_products }}</li>
+    <li>Organic Preference: {{ 'Yes' if user.organic_preference else 'No' }}</li>
+    <li>Climate Zone: {{ user.climate_zone }}</li>
+</ul>
+
+<h4>Your Gardening Goals</h4>
+<p>{{ user.goals }}</p>
+
+<h4>Your Gardening Challenges</h4>
+<p>{{ user.challenges }}</p>
+
+<a href="{{ url_for('profile') }}" class="btn btn-primary">Go to Your Profile</a>
+{% endblock %}

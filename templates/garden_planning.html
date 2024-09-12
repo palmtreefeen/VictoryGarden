@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Garden Planning</h2>
+
+<h3>Your Garden Profile</h3>
+<ul>
+    <li>Location: {{ user.location }}</li>
+    <li>Garden Size: {{ user.garden_size }}</li>
+    <li>Soil Type: {{ user.soil_type }}</li>
+    <li>Sunlight Exposure: {{ user.sunlight }}</li>
+    <li>Watering Frequency: {{ user.watering_frequency }}</li>
+    <li>Climate Zone: {{ user.climate_zone }}</li>
+    <li>Soil pH: {% if user.soil_ph %}{{ user.soil_ph }}{% else %}Not tested yet{% endif %}</li>
+</ul>
+
+<a href="{{ url_for('soil_ph') }}" class="btn btn-primary">Test Soil pH</a>
+<a href="{{ url_for('crop_rotation') }}" class="btn btn-primary">Crop Rotation Planner</a>
+<a href="{{ url_for('weather_planting') }}" class="btn btn-primary">Weather-Based Planting Recommendations</a>
+<a href="{{ url_for('garden_tasks') }}" class="btn btn-primary">Garden Task Scheduler</a>
+
+<!-- ... (rest of the content remains the same) -->
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/garden_planner.js') }}"></script>
+{% endblock %}

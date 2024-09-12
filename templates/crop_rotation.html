@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Crop Rotation Planner</h2>
+
+<div id="crop-rotation-form">
+    <h3>Enter your current crops:</h3>
+    <select id="crop-select" multiple>
+        <option value="Tomato">Tomato</option>
+        <option value="Pepper">Pepper</option>
+        <option value="Potato">Potato</option>
+        <option value="Cabbage">Cabbage</option>
+        <option value="Broccoli">Broccoli</option>
+        <option value="Cauliflower">Cauliflower</option>
+        <option value="Carrot">Carrot</option>
+        <option value="Parsnip">Parsnip</option>
+        <option value="Celery">Celery</option>
+        <option value="Pea">Pea</option>
+        <option value="Bean">Bean</option>
+        <option value="Lettuce">Lettuce</option>
+        <option value="Sunflower">Sunflower</option>
+    </select>
+    <button onclick="submitCrops()">Get Rotation Suggestions</button>
+</div>
+
+<div id="rotation-results" style="display: none;">
+    <h3>Crop Rotation Suggestions:</h3>
+    <ul id="rotation-list"></ul>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function submitCrops() {
+    const crops = Array.from(document.getElementById('crop-select').selectedOptions).map(option => option.value);
+    fetch('/crop_rotation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: crops.map(crop => `current_crops[]=${encodeURIComponent(crop)}`).join('&')
+    })
+    .then(response => response.json())
+    .then(data => {
+        const rotationList = document.getElementById('rotation-list');
+        rotationList.innerHTML = '';
+        data.forEach(rotation => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${rotation.current_crop}</strong>: ${rotation.suggestions.join(', ')}`;
+            rotationList.appendChild(li);
+        });
+        document.getElementById('rotation-results').style.display = 'block';
+    });
+}
+</script>
+{% endblock %}

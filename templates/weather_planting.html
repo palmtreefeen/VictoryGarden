@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Weather-Based Planting Recommendations</h2>
+
+<div id="weather-form">
+    <h3>Enter your location:</h3>
+    <input type="text" id="location" required>
+    <button onclick="getWeatherRecommendations()">Get Recommendations</button>
+</div>
+
+<div id="weather-results" style="display: none;">
+    <h3>Current Weather Conditions:</h3>
+    <p>Temperature: <span id="temperature"></span>°C</p>
+    <p>Humidity: <span id="humidity"></span>%</p>
+    <p>Wind Speed: <span id="wind-speed"></span> m/s</p>
+    
+    <h3>Planting Recommendations:</h3>
+    <ul id="recommendations-list"></ul>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function getWeatherRecommendations() {
+    const location = document.getElementById('location').value;
+    fetch('/weather_planting', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `location=${encodeURIComponent(location)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            document.getElementById('temperature').textContent = data.temperature;
+            document.getElementById('humidity').textContent = data.humidity;
+            document.getElementById('wind-speed').textContent = data.wind_speed;
+            
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = '';
+            data.recommendations.forEach(recommendation => {
+                const li = document.createElement('li');
+                li.textContent = recommendation;
+                recommendationsList.appendChild(li);
+            });
+            
+            document.getElementById('weather-results').style.display = 'block';
+        }
+    });
+}
+</script>
+{% endblock %}

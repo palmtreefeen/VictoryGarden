@@ -1,48 +1,63 @@
-# ... (previous imports remain the same)
+# ... (previous imports and code remain the same)
 
-@app.route('/onboard/<user_type>', methods=['GET', 'POST'])
+from datetime import datetime, timedelta
+
+# ... (previous routes and functions remain the same)
+
+@app.route('/garden_tasks', methods=['GET', 'POST'])
 @login_required
-def onboard(user_type):
-    if user_type not in ['buyer', 'seller', 'vendor']:
-        flash('Invalid user type.', 'error')
-        return redirect(url_for('index'))
-    
-    form = OnboardingForm()
-    if form.validate_on_submit():
-        current_user.experience = form.experience.data
-        current_user.interests = form.interests.data
-        current_user.location = form.location.data
-        current_user.garden_size = form.garden_size.data
-        current_user.soil_type = form.soil_type.data
-        current_user.sunlight = form.sunlight.data
-        current_user.watering_frequency = form.watering_frequency.data
-        current_user.preferred_products = form.preferred_products.data
-        current_user.organic_preference = form.organic_preference.data
-        current_user.climate_zone = form.climate_zone.data
-        current_user.goals = form.goals.data
-        current_user.challenges = form.challenges.data
+def garden_tasks():
+    if request.method == 'POST':
+        task = request.form.get('task')
+        due_date = request.form.get('due_date')
         
-        # Calculate onboarding progress
-        filled_fields = sum(1 for f in form if f.data and f.name != 'csrf_token')
-        total_fields = len([f for f in form if f.name != 'csrf_token'])
-        current_user.onboarding_progress = int((filled_fields / total_fields) * 100)
-        
-        if current_user.onboarding_progress == 100:
-            current_user.onboarding_complete = True
-            flash('Onboarding completed successfully!', 'success')
-        else:
-            flash(f'Onboarding {current_user.onboarding_progress}% complete. Please fill out more information to get personalized recommendations.', 'info')
-        
+        new_task = GardenTask(user_id=current_user.id, task=task, due_date=due_date)
+        db.session.add(new_task)
         db.session.commit()
         
-        # Suggest products based on user's location and climate zone
-        suggested_products = get_product_recommendations(current_user)
-        
-        return render_template('onboarding_results.html', 
-                               user=current_user, 
-                               progress=current_user.onboarding_progress, 
-                               suggested_products=suggested_products)
+        return jsonify({'success': True, 'task': task, 'due_date': due_date})
     
-    return render_template('onboarding.html', form=form, user_type=user_type, progress=current_user.onboarding_progress)
+    tasks = GardenTask.query.filter_by(user_id=current_user.id).order_by(GardenTask.due_date).all()
+    suggested_tasks = generate_suggested_tasks(current_user)
+    
+    return render_template('garden_tasks.html', user=current_user, tasks=tasks, suggested_tasks=suggested_tasks)
+
+def generate_suggested_tasks(user):
+    current_date = datetime.now()
+    suggested_tasks = []
+    
+    # Spring tasks (March to May)
+    if 3 <= current_date.month <= 5:
+        suggested_tasks.extend([
+            ("Prepare garden beds", (current_date + timedelta(days=7)).strftime("%Y-%m-%d")),
+            ("Start seeds indoors", (current_date + timedelta(days=14)).strftime("%Y-%m-%d")),
+            ("Prune fruit trees", (current_date + timedelta(days=21)).strftime("%Y-%m-%d"))
+        ])
+    
+    # Summer tasks (June to August)
+    elif 6 <= current_date.month <= 8:
+        suggested_tasks.extend([
+            ("Water plants regularly", (current_date + timedelta(days=1)).strftime("%Y-%m-%d")),
+            ("Harvest vegetables", (current_date + timedelta(days=7)).strftime("%Y-%m-%d")),
+            ("Monitor for pests", (current_date + timedelta(days=14)).strftime("%Y-%m-%d"))
+        ])
+    
+    # Fall tasks (September to November)
+    elif 9 <= current_date.month <= 11:
+        suggested_tasks.extend([
+            ("Plant fall crops", (current_date + timedelta(days=7)).strftime("%Y-%m-%d")),
+            ("Collect seeds", (current_date + timedelta(days=14)).strftime("%Y-%m-%d")),
+            ("Prepare for frost", (current_date + timedelta(days=21)).strftime("%Y-%m-%d"))
+        ])
+    
+    # Winter tasks (December to February)
+    else:
+        suggested_tasks.extend([
+            ("Plan next year's garden", (current_date + timedelta(days=14)).strftime("%Y-%m-%d")),
+            ("Maintain tools", (current_date + timedelta(days=21)).strftime("%Y-%m-%d")),
+            ("Order seeds", (current_date + timedelta(days=28)).strftime("%Y-%m-%d"))
+        ])
+    
+    return suggested_tasks
 
 # ... (rest of the file remains the same)

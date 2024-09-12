@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Garden Task Scheduler</h2>
+
+<div id="task-form">
+    <h3>Add a New Task</h3>
+    <input type="text" id="task" placeholder="Enter task description" required>
+    <input type="date" id="due-date" required>
+    <button onclick="addTask()">Add Task</button>
+</div>
+
+<div id="task-list">
+    <h3>Your Tasks</h3>
+    <ul>
+    {% for task in tasks %}
+        <li>{{ task.task }} - Due: {{ task.due_date.strftime('%Y-%m-%d') }}</li>
+    {% endfor %}
+    </ul>
+</div>
+
+<div id="suggested-tasks">
+    <h3>Suggested Tasks</h3>
+    <ul>
+    {% for task, due_date in suggested_tasks %}
+        <li>{{ task }} - Suggested Due Date: {{ due_date }}</li>
+    {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addTask() {
+    const task = document.getElementById('task').value;
+    const dueDate = document.getElementById('due-date').value;
+    
+    fetch('/garden_tasks', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `task=${encodeURIComponent(task)}&due_date=${encodeURIComponent(dueDate)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const taskList = document.querySelector('#task-list ul');
+            const newTask = document.createElement('li');
+            newTask.textContent = `${data.task} - Due: ${data.due_date}`;
+            taskList.appendChild(newTask);
+            
+            document.getElementById('task').value = '';
+            document.getElementById('due-date').value = '';
+        } else {
+            alert('Failed to add task. Please try again.');
+        }
+    });
+}
+</script>
+{% endblock %}

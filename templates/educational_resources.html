@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Educational Resources</h2>
+
+<div class="resource-grid">
+    {% for resource in resources %}
+        <div class="resource-card">
+            <img src="{{ url_for('static', filename='images/' + resource.image) }}" alt="{{ resource.title }}" class="resource-image">
+            <h3>{{ resource.title }}</h3>
+            <p>{{ resource.description }}</p>
+            <a href="{{ url_for('educational_topic', topic=resource.link.split('/')[-1]) }}" class="btn btn-primary">Learn More</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

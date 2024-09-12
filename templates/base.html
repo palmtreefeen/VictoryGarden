@@ -12,6 +12,7 @@
             <ul>
                 <li><a href="{{ url_for('index') }}">Home</a></li>
                 <li><a href="{{ url_for('marketplace') }}">Marketplace</a></li>
+                <li><a href="{{ url_for('educational_resources') }}">Educational Resources</a></li>
                 {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('profile') }}">Profile</a></li>
                     <li><a href="{{ url_for('analytics_dashboard') }}">Analytics</a></li>
@@ -40,7 +41,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2023 VictoryGarden.io. All rights reserved.</p>
+        <p>&copy; 2024 VictoryGarden.io. All rights reserved.</p>
     </footer>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

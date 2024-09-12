@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ topic|replace('-', ' ')|title }}</h2>
+
+<div class="topic-content">
+    <p>This is a placeholder for the content of {{ topic|replace('-', ' ')|title }}. In a full implementation, this page would contain detailed information, images, and possibly videos related to the topic.</p>
+    
+    <h3>Key Points:</h3>
+    <ul>
+        <li>Point 1 about {{ topic|replace('-', ' ')|title }}</li>
+        <li>Point 2 about {{ topic|replace('-', ' ')|title }}</li>
+        <li>Point 3 about {{ topic|replace('-', ' ')|title }}</li>
+    </ul>
+    
+    <p>For more information, check out our other educational resources or visit our marketplace for related products.</p>
+    
+    <a href="{{ url_for('educational_resources') }}" class="btn btn-secondary">Back to Resources</a>
+</div>
+{% endblock %}

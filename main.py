@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from werkzeug.urls import url_parse
+from urllib.parse import urlparse
 from models import db, User, Product, Transaction
 from forms import LoginForm, RegistrationForm, ProductForm
 import os
@@ -18,76 +18,67 @@ login_manager.login_view = 'login'
 def load_user(id):
     return User.query.get(int(id))
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# ... (previous routes remain the same)
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid email or password')
-            return redirect(url_for('login'))
-        login_user(user)
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
-        return redirect(next_page)
-    return render_template('login.html', title='Sign In', form=form)
+@app.route('/educational_resources')
+def educational_resources():
+    resources = [
+        {
+            'title': 'Urban Farming Basics',
+            'description': 'Learn the fundamentals of urban farming and how to get started.',
+            'link': '/urban-farming-basics',
+            'image': 'urban_farming.jpg'
+        },
+        {
+            'title': 'Sustainable Gardening Practices',
+            'description': 'Discover eco-friendly gardening techniques for a greener future.',
+            'link': '/sustainable-gardening',
+            'image': 'sustainable_gardening.jpg'
+        },
+        {
+            'title': 'Seasonal Planting Guide',
+            'description': 'Know what to plant and when for optimal growth in your region.',
+            'link': '/seasonal-planting-guide',
+            'image': 'seasonal_planting.jpg'
+        },
+        {
+            'title': 'Composting 101',
+            'description': 'Turn your kitchen scraps into nutrient-rich soil for your garden.',
+            'link': '/composting-101',
+            'image': 'composting.jpg'
+        },
+        {
+            'title': 'Pest Management for Urban Gardens',
+            'description': 'Learn how to protect your plants from common urban pests naturally.',
+            'link': '/pest-management',
+            'image': 'pest_management.jpg'
+        },
+        {
+            'title': 'Vertical Gardening Techniques',
+            'description': 'Maximize your space with innovative vertical gardening methods.',
+            'link': '/vertical-gardening',
+            'image': 'vertical_gardening.jpg'
+        },
+        {
+            'title': 'Hydroponics for Beginners',
+            'description': 'Get started with soil-less gardening using hydroponics.',
+            'link': '/hydroponics-beginners',
+            'image': 'hydroponics.jpg'
+        },
+        {
+            'title': 'Urban Beekeeping',
+            'description': 'Learn how to keep bees in an urban environment and promote pollination.',
+            'link': '/urban-beekeeping',
+            'image': 'beekeeping.jpg'
+        }
+    ]
+    return render_template('educational_resources.html', resources=resources)
 
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
-
-@app.route('/marketplace')
-def marketplace():
-    products = Product.query.all()
-    return render_template('marketplace.html', products=products)
-
-@app.route('/marketplace/<category>')
-def marketplace_category(category):
-    products = Product.query.filter_by(category=category).all()
-    return render_template('marketplace_category.html', category=category, products=products)
-
-@app.route('/create_product', methods=['GET', 'POST'])
-@login_required
-def create_product():
-    form = ProductForm()
-    if form.validate_on_submit():
-        product = Product(
-            name=form.name.data,
-            description=form.description.data,
-            price=form.price.data,
-            seller_id=current_user.id,
-            is_organic=form.is_organic.data,
-            tags=form.tags.data,
-            category=form.category.data,
-            image_url=form.image_url.data
-        )
-        db.session.add(product)
-        db.session.commit()
-        flash('Your product has been created!')
-        return redirect(url_for('marketplace'))
-    return render_template('create_product.html', title='Create Product', form=form)
+@app.route('/educational_resources/<topic>')
+def educational_topic(topic):
+    # This is a placeholder for individual educational resource pages
+    # In a full implementation, you would fetch the specific content for each topic
+    return render_template('educational_topic.html', topic=topic)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8080)

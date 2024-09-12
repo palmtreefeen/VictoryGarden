@@ -1,125 +1,56 @@
 /* ... (previous styles remain the same) */
 
-/* Garden Planning Styles */
-.plant-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+.category-links {
+    margin-bottom: 2rem;
 }
 
-.plant-card {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 1rem;
-    background-color: #f9f9f9;
-}
-
-.plant-card h4 {
-    margin-top: 0;
-    color: #4CAF50;
-}
-
-#garden-layout-planner {
-    margin-top: 2rem;
-    display: flex;
-    gap: 2rem;
-}
-
-#garden-grid {
-    display: grid;
-    grid-template-columns: repeat(10, 30px);
-    grid-template-rows: repeat(10, 30px);
-    gap: 1px;
-    background-color: #ddd;
-    padding: 1px;
-}
-
-.garden-cell {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    cursor: pointer;
-}
-
-#plant-palette {
-    flex: 1;
-}
-
-#plant-list {
+.category-links ul {
     list-style-type: none;
     padding: 0;
-}
-
-.plant-item {
-    padding: 5px 10px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    border-radius: 3px;
-    color: #fff;
-    font-weight: bold;
-}
-
-.plant-item.selected {
-    outline: 2px solid #000;
-}
-
-.seasonal-recommendations {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-top: 1rem;
 }
 
-.season-card {
-    flex: 1;
-    min-width: 200px;
-    border: 1px solid #ddd;
+.category-links li {
+    background-color: #f0f0f0;
+    padding: 0.5rem 1rem;
     border-radius: 5px;
-    padding: 1rem;
-    background-color: #f9f9f9;
 }
 
-.season-card h4 {
-    margin-top: 0;
-    color: #4CAF50;
+.category-links a {
+    text-decoration: none;
+    color: #333;
 }
 
-/* Companion Planting Styles */
-#companion-planting {
-    margin-top: 2rem;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
-
-#plant-selector {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-#companion-results {
-    display: flex;
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 2rem;
 }
 
-#companion-results h5 {
+.product-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.product-card h3 {
     margin-top: 0;
-    color: #4CAF50;
 }
 
-#good-companions, #bad-companions {
-    flex: 1;
-    padding-left: 1.5rem;
-}
-
-#good-companions li {
-    color: #4CAF50;
-}
-
-#bad-companions li {
-    color: #FF6347;
+.product-card .btn {
+    margin-top: auto;
 }
 
 /* ... (rest of the styles remain the same) */

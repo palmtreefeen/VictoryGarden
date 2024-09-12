@@ -2,14 +2,28 @@
 
 {% block content %}
 <h2>Marketplace</h2>
+
+<div class="category-links">
+    <h3>Product Categories</h3>
+    <ul>
+        <li><a href="{{ url_for('marketplace_category', category='gardening_tools') }}">Gardening Tools</a></li>
+        <li><a href="{{ url_for('marketplace_category', category='gardening_kits') }}">Gardening Kits</a></li>
+        <li><a href="{{ url_for('marketplace_category', category='urban_systems') }}">Urban Systems</a></li>
+        <li><a href="{{ url_for('marketplace_category', category='seeds') }}">Seeds</a></li>
+        <li><a href="{{ url_for('marketplace_category', category='plants') }}">Plants</a></li>
+        <li><a href="{{ url_for('marketplace_category', category='soil_fertilizers') }}">Soil and Fertilizers</a></li>
+    </ul>
+</div>
+
 <div class="product-grid">
     {% for product in products %}
         <div class="product-card">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
             <h3>{{ product.name }}</h3>
-            <p>{{ product.description }}</p>
-            <p>Price: ${{ product.price }}</p>
-            <p>Seller: {{ product.seller.username }}</p>
-            <a href="{{ url_for('product_detail', product_id=product.id) }}">View Details</a>
+            <p>{{ product.description[:100] }}...</p>
+            <p>Price: ${{ "%.2f"|format(product.price) }}</p>
+            <p>Category: {{ product.category }}</p>
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
         </div>
     {% endfor %}
 </div>

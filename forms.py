@@ -19,10 +19,26 @@ class ProductForm(FlaskForm):
     name = StringField('Product Name', validators=[DataRequired(), Length(max=100)])
     description = TextAreaField('Description', validators=[DataRequired()])
     price = FloatField('Price', validators=[DataRequired()])
+    tags = StringField('Tags (comma-separated)', validators=[DataRequired()])
+    location = StringField('Location', validators=[DataRequired()])
     submit = SubmitField('Create Product')
 
 class ServiceForm(FlaskForm):
     name = StringField('Service Name', validators=[DataRequired(), Length(max=100)])
     description = TextAreaField('Description', validators=[DataRequired()])
     price = FloatField('Price', validators=[DataRequired()])
+    tags = StringField('Tags (comma-separated)', validators=[DataRequired()])
+    location = StringField('Location', validators=[DataRequired()])
     submit = SubmitField('Create Service')
+
+class OnboardingForm(FlaskForm):
+    experience = SelectField('Gardening Experience', choices=[('beginner', 'Beginner'), ('intermediate', 'Intermediate'), ('expert', 'Expert')])
+    interests = StringField('Interests (comma-separated)')
+    location = StringField('Location')
+    submit = SubmitField('Complete Onboarding')
+
+class SearchForm(FlaskForm):
+    query = StringField('Search', validators=[DataRequired()])
+    category = SelectField('Category', choices=[('products', 'Products'), ('services', 'Services')])
+    location = StringField('Location')
+    submit = SubmitField('Search')

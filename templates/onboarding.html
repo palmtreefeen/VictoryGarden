@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Welcome to VictoryGarden.io</h2>
+<h3>Complete Your {{ user_type.capitalize() }} Profile</h3>
+
+<form method="POST" action="{{ url_for('onboard', user_type=user_type) }}">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.experience.label }}
+        {{ form.experience() }}
+    </div>
+    <div>
+        {{ form.interests.label }}
+        {{ form.interests() }}
+    </div>
+    <div>
+        {{ form.location.label }}
+        {{ form.location() }}
+    </div>
+    <div>
+        {{ form.submit() }}
+    </div>
+</form>
+{% endblock %}

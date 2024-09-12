@@ -15,6 +15,10 @@ class User(UserMixin, db.Model):
     subscription_tier = db.Column(db.String(20), nullable=False, default='free')
     subscription_start_date = db.Column(db.DateTime, nullable=True)
     subscription_end_date = db.Column(db.DateTime, nullable=True)
+    experience = db.Column(db.String(20), nullable=True)
+    interests = db.Column(db.String(200), nullable=True)
+    location = db.Column(db.String(100), nullable=True)
+    onboarding_complete = db.Column(db.Boolean, default=False)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -22,6 +26,8 @@ class Product(db.Model):
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    tags = db.Column(db.String(200))
+    location = db.Column(db.String(100))
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,6 +42,8 @@ class Service(db.Model):
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
     vendor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    tags = db.Column(db.String(200))
+    location = db.Column(db.String(100))
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)

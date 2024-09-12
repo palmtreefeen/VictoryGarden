@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf.csrf import CSRFProtect, CSRFError
 import os
 from models import db, User, Product, Transaction, Service, Booking, Subscription
-from forms import LoginForm, RegistrationForm, ProductForm, ServiceForm
+from forms import LoginForm, RegistrationForm, ProductForm, ServiceForm, OnboardingForm, SearchForm
 from utils import get_stripe_publishable_key, create_stripe_checkout_session
 import random
 from email_validator import validate_email, EmailNotValidError
@@ -135,7 +135,9 @@ def create_product():
             name=form.name.data,
             description=form.description.data,
             price=form.price.data,
-            seller_id=current_user.id
+            seller_id=current_user.id,
+            tags=form.tags.data,
+            location=form.location.data
         )
         db.session.add(new_product)
         db.session.commit()
@@ -156,7 +158,9 @@ def create_service():
             name=form.name.data,
             description=form.description.data,
             price=form.price.data,
-            vendor_id=current_user.id
+            vendor_id=current_user.id,
+            tags=form.tags.data,
+            location=form.location.data
         )
         db.session.add(new_service)
         db.session.commit()
@@ -188,6 +192,49 @@ def cancel_subscription():
     db.session.commit()
     flash('Your subscription has been canceled.', 'info')
     return redirect(url_for('profile'))
+
+@app.route('/onboard/<user_type>', methods=['GET', 'POST'])
+@login_required
+def onboard(user_type):
+    if user_type not in ['gardener', 'vendor', 'service_provider']:
+        flash('Invalid user type.', 'error')
+        return redirect(url_for('index'))
+    
+    form = OnboardingForm(user_type)
+    if form.validate_on_submit():
+        # Process form data and update user profile
+        current_user.experience = form.experience.data
+        current_user.interests = form.interests.data
+        current_user.location = form.location.data
+        current_user.onboarding_complete = True
+        db.session.commit()
+        flash('Onboarding completed successfully!', 'success')
+        return redirect(url_for(f'{user_type}_portal'))
+    
+    return render_template('onboarding.html', form=form, user_type=user_type)
+
+@app.route('/search', methods=['GET', 'POST'])
+def advanced_search():
+    form = SearchForm()
+    if form.validate_on_submit():
+        query = form.query.data
+        category = form.category.data
+        location = form.location.data
+        
+        if category == 'products':
+            results = Product.query.filter(
+                (Product.name.contains(query) | Product.description.contains(query) | Product.tags.contains(query)) &
+                Product.location.contains(location)
+            ).all()
+        else:
+            results = Service.query.filter(
+                (Service.name.contains(query) | Service.description.contains(query) | Service.tags.contains(query)) &
+                Service.location.contains(location)
+            ).all()
+        
+        return render_template('search_results.html', results=results, category=category)
+    
+    return render_template('advanced_search.html', form=form)
 
 def add_default_subscriptions():
     subscriptions = [

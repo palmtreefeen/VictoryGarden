@@ -3,12 +3,26 @@
 {% block content %}
 <h2>{{ product.name }}</h2>
 <p>{{ product.description }}</p>
-<p>Price: ${{ product.price }}</p>
+<p>Base Price: ${{ "%.2f"|format(product.price) }}</p>
 <p>Seller: {{ product.seller.username }}</p>
 
 {% if current_user.is_authenticated and current_user.id != product.seller_id %}
+    <div id="price-breakdown">
+        <h3>Price Breakdown</h3>
+        <p>Base Price: $<span id="base-price">{{ "%.2f"|format(product.price) }}</span></p>
+        <p>Transaction Fee: $<span id="transaction-fee">{{ "%.2f"|format(product.calculate_total_price(current_user) - product.price) }}</span></p>
+        <p>Total Price: $<span id="total-price">{{ "%.2f"|format(product.calculate_total_price(current_user)) }}</span></p>
+    </div>
     <form action="{{ url_for('checkout', product_id=product.id) }}" method="POST">
-        <button type="submit">Buy Now</button>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary">Buy Now</button>
     </form>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // You can add JavaScript here to dynamically update the price breakdown
+    // if you implement features like quantity selection or additional options
+</script>
 {% endblock %}

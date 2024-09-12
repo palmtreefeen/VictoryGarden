@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Revenue Dashboard</h2>
+
+<div class="revenue-summary">
+    <h3>Total Revenue from Transaction Fees</h3>
+    <p>${{ "%.2f"|format(total_revenue) }}</p>
+</div>
+
+<div class="revenue-by-tier">
+    <h3>Revenue by Subscription Tier</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Subscription Tier</th>
+                <th>Revenue</th>
+                <th>Number of Users</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tier, revenue in revenue_by_tier %}
+            <tr>
+                <td>{{ tier }}</td>
+                <td>${{ "%.2f"|format(revenue) }}</td>
+                <td>
+                    {% for user_tier, count in users_by_tier %}
+                        {% if user_tier == tier %}
+                            {{ count }}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="revenue-chart">
+    <h3>Revenue Chart</h3>
+    <canvas id="revenueChart"></canvas>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueData = {
+        labels: [{% for tier, _ in revenue_by_tier %}'{{ tier }}',{% endfor %}],
+        datasets: [{
+            label: 'Revenue by Tier',
+            data: [{% for _, revenue in revenue_by_tier %}{{ revenue }},{% endfor %}],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+    new Chart(ctx, {
+        type: 'bar',
+        data: revenueData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

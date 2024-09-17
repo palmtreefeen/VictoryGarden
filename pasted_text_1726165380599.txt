@@ -1,0 +1,63 @@
+The error message "Could not build URL for endpoint 'login'" suggests that the Flask application cannot find a route definition for the `login` endpoint, which is referenced in the `login_manager.login_view` configuration. Here are some steps to resolve the issue:
+
+1. **Check for the Login Route Definition:**
+   Ensure there is a route defined for the login page. Typically, this would look like:
+   ```python
+   @app.route('/login', methods=['GET', 'POST'])
+   def login():
+       # Your login logic here
+       pass
+   ```
+   Make sure this route exists in your code.
+
+2. **Check for Endpoint Naming:**
+   The `login_manager.login_view = 'login'` line indicates that the application expects an endpoint named `'login'`. The endpoint name is typically the function name of the route handling the login. If your login function has a different name or a different route path, update `login_view` accordingly.
+
+3. **Verify the URL Building:**
+   When Flask can't build a URL for a specific endpoint, it usually means that the route might be missing or incorrectly named. Make sure the function handling the login has the correct name, and the route path matches what's expected by Flask. If the login function is defined but named differently, update the `login_view` to match the actual function name.
+
+4. **Ensure Flask-Login is Configured Correctly:**
+   Sometimes, errors can occur if Flask-Login isn't correctly configured or initialized. Make sure that the `LoginManager` is correctly set up and initialized with the app.
+
+Here's how you can adjust or verify the code:
+
+### Add a Login Route (if missing):
+
+If the login route is not defined, add it like this:
+
+```python
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            flash('Logged in successfully.')
+            next_page = request.args.get('next')
+            # Check if the next page is safe for redirection
+            if next_page and urlparse(next_page).netloc == '':
+                return redirect(next_page)
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password.')
+    return render_template('login.html', form=form)
+```
+
+### Verify Route Definitions:
+
+Make sure that the login route matches the definition:
+- The route should be `/login`.
+- The function name should be `login`.
+
+If your login function has a different name or the route path is not `/login`, adjust the `login_manager.login_view` to reflect the correct endpoint:
+
+```python
+login_manager.login_view = 'your_login_function_name'
+```
+
+### Testing the Fix:
+
+After making these changes, restart your Flask app and check if the error persists when trying to access the MRR dashboard.
+
+If you continue to encounter issues, please let me know, and I can guide you further!

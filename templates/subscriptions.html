@@ -6,7 +6,7 @@
     {% for subscription in subscriptions %}
         <div class="subscription-card">
             <h3>{{ subscription.name }}</h3>
-            <p>Price: ${{ subscription.price }}/month</p>
+            <p>Price: ${{ "%.2f"|format(subscription.price) }}/month</p>
             <h4>Features:</h4>
             <ul>
                 {% for feature in subscription.features.split(',') %}
@@ -23,7 +23,7 @@
                     </form>
                 {% endif %}
             {% else %}
-                <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Log in to Subscribe</a>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary">Log in to Subscribe</a>
             {% endif %}
         </div>
     {% endfor %}

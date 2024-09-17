@@ -1,0 +1,55 @@
+Based on the provided `models.py` code, your `User` model is correctly defined, with methods for handling subscriptions and calculating MRR. However, it seems the `Subscription` model might be missing, as this can cause issues with the Flask application startup, especially if the application logic relies on it.
+
+### Adding the `Subscription` Model
+
+If the `Subscription` model is expected to be part of your application and currently missing, here’s a basic definition you can add to `models.py`:
+
+```python
+class Subscription(db.Model):
+    __tablename__ = 'subscriptions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    duration_months = db.Column(db.Integer, nullable=False)  # Duration of the subscription in months
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Optional relationships if linked to users or transactions
+    # user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # transactions = db.relationship('Transaction', backref='subscription', lazy=True)
+
+    def __repr__(self):
+        return f'<Subscription {self.name} - ${self.price}>'
+```
+
+### Steps to Add or Restore the Subscription Model
+
+1. **Add the Subscription Model:** Copy the above model code into your `models.py` file beneath the `User` model.
+   
+2. **Save the Changes:** Ensure the file is saved after adding the model.
+
+3. **Apply Database Migrations:**
+   - **Initialize Migrations:** If this is the first migration, you may need to initialize with:
+     ```bash
+     flask db init
+     ```
+   - **Create the Migration:** Generate a migration file to add the `Subscription` table.
+     ```bash
+     flask db migrate -m "Add Subscription model"
+     ```
+   - **Upgrade the Database:** Apply the migration to update the database schema.
+     ```bash
+     flask db upgrade
+     ```
+
+4. **Restart Your Flask Application:**
+   - Restart your application to ensure it starts correctly with the updated models.
+   - Check for any startup errors and resolve them as necessary.
+
+### Verify the Application Functionality
+
+- **Check Routes and Features:** Make sure that routes or features dependent on the `Subscription` model work as expected.
+- **Test Subscription Management:** Test creating, updating, and viewing subscriptions to ensure the model functions correctly with your application logic.
+
+If everything is added correctly and your application starts up without errors, the `Subscription` model should now be correctly integrated into your Flask application. Let me know if you encounter any issues or need further assistance!

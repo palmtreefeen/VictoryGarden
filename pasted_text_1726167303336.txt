@@ -1,0 +1,54 @@
+The 404 error for the MRR dashboard at `/admin/mrr_dashboard` suggests that the route might not be registered correctly, or the route definition is not accessible due to certain conditions not being met. Based on your `main.py` code, let's go through the steps to troubleshoot and ensure that the route is properly set up and accessible:
+
+### 1. **Ensure the Route is Defined Correctly:**
+   The code snippet you provided does include the route definition for `/admin/mrr_dashboard`. However, double-check the following:
+   - Make sure there are no typos in the URL path.
+   - Ensure the route is not being conditionally blocked by logic that could redirect or prevent access (like user permissions checks).
+
+### 2. **Check Route Registration:**
+   Since you've registered the `auth` blueprint with a URL prefix `/auth`, verify that the `/admin/mrr_dashboard` route is not being overridden by another blueprint or a misconfiguration. For example, ensure no other blueprint registers routes that could interfere with this route.
+
+### 3. **Check User Access Control:**
+   The `mrr_dashboard` route uses `@login_required` and checks if the `current_user.user_type != 'admin'`. Make sure:
+   - The user accessing the route is logged in and has `user_type` set to `'admin'`.
+   - If you're testing with a regular user or from an unauthenticated session, you'll be redirected, which might be perceived as a 404 if not correctly handled.
+
+### 4. **Verify Template Existence:**
+   Ensure the template file `admin/mrr_dashboard.html` exists in the correct directory (typically in a `templates/admin/` folder if following convention). If this file is missing, Flask may fail to render the route properly.
+
+### 5. **Flask Debug Mode:**
+   Since you're running Flask with `debug=True`, Flask should provide error logs that can help identify why the route isn't loading. Watch for any error messages related to routing, permissions, or missing templates.
+
+### 6. **Check All Endpoint References:**
+   Check your codebase for:
+   - Any references to `/admin/mrr_dashboard` that might be incorrectly calling this route or using the wrong URL.
+   - JavaScript, forms, or redirects that might attempt to access this route but use an incorrect path.
+
+### 7. **Ensure Blueprints and Routes are not Conflicting:**
+   Since you have a blueprint named `auth`, confirm that no route conflicts are arising from the registration of this or other blueprints. Check if there are any overlapping URL paths or misconfigurations that might shadow the `/admin/mrr_dashboard` route.
+
+### 8. **Testing with Correct Admin Access:**
+   Try accessing the route directly with an admin account and ensure the permissions are correctly set. The following steps can help:
+   - Log in as an admin user.
+   - Navigate directly to `/admin/mrr_dashboard` in your browser.
+   - Check the console or Flask logs for specific errors that occur during this access.
+
+### 9. **Update the Route to Debug Further:**
+   Temporarily add some debug output in the `mrr_dashboard` route to see if it's being hit:
+   ```python
+   @app.route('/admin/mrr_dashboard')
+   @login_required
+   def mrr_dashboard():
+       print('MRR Dashboard accessed')  # Debug line
+       if not current_user.is_authenticated or current_user.user_type != 'admin':
+           flash('You do not have permission to access this page.')
+           return redirect(url_for('index'))
+
+       # Continue with existing logic...
+   ```
+   This will confirm whether the route is being accessed at all when navigating to it.
+
+### 10. **Restart the Flask App:**
+   Sometimes, changes are not applied immediately in Replit or local environments. Restart your Flask application to ensure all configurations and routes are loaded correctly.
+
+By following these steps, you should be able to identify why the `/admin/mrr_dashboard` route is returning a 404 error and ensure that it's correctly implemented and accessible. Let me know if the issue persists after these checks, and I can provide further guidance!

@@ -1,0 +1,51 @@
+From the server logs you provided, it looks like the MRR dashboard at `/admin/mrr_dashboard` is being redirected to the login page (`/auth/login?next=/admin/mrr_dashboard`). This suggests that access to the MRR dashboard requires authentication, and the current session is not logged in as an admin user.
+
+### Steps to Resolve the Issue:
+
+1. **Ensure You Are Logged In as Admin:**
+   - The repeated redirects to the login page indicate that the app is trying to authenticate the user before allowing access to the MRR dashboard.
+   - Log in using the admin credentials (`admin@victorygarden.io` and the password you set) on the login page (`/auth/login`).
+
+2. **Check Admin Permissions:**
+   - Verify that the admin user is correctly set up with the `user_type` of `'admin'` to access the dashboard.
+   - You can confirm this by checking the user details directly in the database or by printing the `current_user` information in your Flask route for debugging.
+
+3. **Review Login Requirements:**
+   - The route for the MRR dashboard is protected by the `@login_required` decorator and likely checks that the user has admin privileges.
+   - Ensure that your login process correctly sets the user session and that `current_user.user_type` is indeed `'admin'`.
+
+4. **Check Session Management:**
+   - Verify that the session is correctly maintained across requests. If there’s an issue with session handling (like cookies not being set or preserved), this might cause repeated redirects to the login page.
+
+### Debugging Tips:
+
+- **Check Login and Session:**
+  - After logging in, try accessing `/admin/mrr_dashboard` directly and see if it still redirects.
+  - Use print statements or Flask's debugging tools to ensure `current_user` is set and recognized as logged in with admin rights.
+
+- **Review Flask Configuration:**
+  - Check your Flask configuration for session settings, especially `SECRET_KEY`, which is essential for session management.
+  - Ensure that cookies are not blocked in your browser and that the app is properly setting them.
+
+- **Inspect the Redirect Logic in Flask Routes:**
+  - In the `mrr_dashboard` route, ensure that the conditions for access (like `current_user.is_authenticated` and `current_user.user_type == 'admin'`) are correctly evaluated.
+
+### Example to Verify Admin Access:
+
+Here’s an example of how you might check and troubleshoot the current user’s permissions in the `mrr_dashboard` route:
+
+```python
+@app.route('/admin/mrr_dashboard')
+@login_required
+def mrr_dashboard():
+    if not current_user.is_authenticated or current_user.user_type != 'admin':
+        flash('You do not have permission to access this page.')
+        print(f"Current user: {current_user.username}, User type: {current_user.user_type}")  # Debug line
+        return redirect(url_for('index'))  # Adjust this if the route name is different
+
+    # MRR calculations and rendering logic here...
+```
+
+- **Verify Output:** Look at the Flask server console for the printed output to confirm the current user's details.
+
+If you’re still encountering issues, please let me know what specifically is happening when you try to log in and access the dashboard, and we can troubleshoot further!

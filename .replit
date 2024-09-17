@@ -31,6 +31,14 @@ args = "Init DB Migrations"
 task = "workflow.run"
 args = "Create Admin User"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Check Migration Status"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Check DB Schema"
+
 [[workflows.workflow]]
 name = "Run Flask App"
 author = "agent"
@@ -52,7 +60,7 @@ agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=main.py flask db migrate -m 'Add or update Subscription model'"
+args = "FLASK_APP=main.py flask db migrate -m 'Add or update MRR-related columns'"
 
 [[workflows.workflow]]
 name = "Apply Migration"
@@ -86,6 +94,28 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python create_admin.py"
+
+[[workflows.workflow]]
+name = "Check Migration Status"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "FLASK_APP=main.py flask db current"
+
+[[workflows.workflow]]
+name = "Check DB Schema"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "FLASK_APP=main.py flask shell"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]

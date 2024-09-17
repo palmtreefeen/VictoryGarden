@@ -1,0 +1,90 @@
+The error message indicates that your application is trying to access a column called `password_hash` in the `user` table, but this column does not exist in your database schema. This discrepancy between your model definitions and the actual database schema is causing the application to fail.
+
+### Steps to Fix the `password_hash` Column Issue:
+
+1. **Verify the `User` Model:**
+   Ensure that the `User` model correctly defines the `password_hash` column. Based on the code you provided earlier, the `User` model appears correct:
+
+   ```python
+   class User(UserMixin, db.Model):
+       id = db.Column(db.Integer, primary_key=True)
+       username = db.Column(db.String(64), index=True, unique=True)
+       email = db.Column(db.String(120), index=True, unique=True)
+       password_hash = db.Column(db.String(128))  # Ensure this column is defined
+       user_type = db.Column(db.String(20))
+       subscription_tier = db.Column(db.String(20), default='free')
+       subscription_start_date = db.Column(db.DateTime)
+       subscription_end_date = db.Column(db.DateTime)
+       last_payment_date = db.Column(db.DateTime)
+       mrr = db.Column(db.Float, default=0.0)
+
+       def set_password(self, password):
+           self.password_hash = generate_password_hash(password)
+
+       def check_password(self, password):
+           return check_password_hash(self.password_hash, password)
+   ```
+
+2. **Run Database Migrations:**
+   To ensure that your database schema matches your model definitions, you need to run the database migrations. Here’s how to do it using Flask-Migrate:
+
+   - **Step A: Initialize Migrations (If Not Already Done):**
+     If this is the first time you're setting up migrations, initialize them:
+
+     ```bash
+     flask db init
+     ```
+
+   - **Step B: Create a New Migration:**
+     Generate a migration file that will include any changes to the `User` model, such as adding the `password_hash` column:
+
+     ```bash
+     flask db migrate -m "Add password_hash column to User model"
+     ```
+
+   - **Step C: Apply the Migration:**
+     Apply the migration to update your database schema:
+
+     ```bash
+     flask db upgrade
+     ```
+
+3. **Check the Database:**
+   After running the migration commands, verify that the `user` table now includes the `password_hash` column. You can use a database management tool or query directly from your Python shell:
+
+   ```python
+   # Enter the Flask shell
+   flask shell
+
+   # Verify columns in the User table
+   from models import db, User
+   for column in User.__table__.columns:
+       print(column.name)
+   ```
+
+   Ensure `password_hash` is listed among the columns.
+
+4. **Restart Your Application:**
+   After updating the database schema, restart your Flask application:
+
+   ```bash
+   flask run
+   ```
+
+5. **Test the Admin Login:**
+   - Go to the login page (`/auth/login`).
+   - Enter the admin credentials (`admin@victorygarden.io` with the correct password).
+   - Access the MRR dashboard at `/admin/mrr_dashboard`.
+
+### Additional Tips:
+
+- **Check Flask-Migrate Configuration:**
+  Make sure your Flask application is correctly configured with Flask-Migrate by ensuring the `Migrate` object is initialized with your app and database in the main application file (`main.py` or similar).
+
+- **Review Environment Settings:**
+  Ensure the correct environment variables are set, particularly `FLASK_APP` and `FLASK_ENV=development` to enable auto-reloading and debugging.
+
+- **Inspect the Migrations Folder:**
+  Check the `migrations/versions/` folder for the newly created migration files to ensure they include the changes you expect.
+
+Following these steps should resolve the issue with the missing `password_hash` column and allow your application to function correctly. If you encounter further problems, please provide the specific error message, and I'll be happy to assist further!

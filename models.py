@@ -54,17 +54,10 @@ class User(UserMixin, db.Model):
         return db.session.query(func.sum(User.mrr)).scalar() or 0.0
 
 class Subscription(db.Model):
-    __tablename__ = 'subscriptions'
-    
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(20), unique=True, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    duration_months = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def __repr__(self):
-        return f'<Subscription {self.name} - ${self.price}>'
+    features = db.Column(db.String(255))
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -73,25 +66,4 @@ class Transaction(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     description = db.Column(db.String(255))
 
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    price = db.Column(db.Float, nullable=False)
-    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    category = db.Column(db.String(50))
-    is_organic = db.Column(db.Boolean, default=False)
-    tags = db.Column(db.String(255))
-    image_url = db.Column(db.String(255))
-
-    seller = db.relationship('User', backref='products')
-
-    def calculate_total_price(self, user):
-        base_price = self.price
-        if user.subscription_tier == 'free':
-            transaction_fee = base_price * 0.05  # 5% transaction fee for free users
-        elif user.subscription_tier == 'pro':
-            transaction_fee = base_price * 0.03  # 3% transaction fee for pro users
-        else:  # Premium users
-            transaction_fee = base_price * 0.01  # 1% transaction fee for premium users
-        return base_price + transaction_fee
+# Add other models as needed (e.g., Product, Order, etc.)

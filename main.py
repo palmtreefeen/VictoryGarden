@@ -2,9 +2,9 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_required, current_user
-from config import Config
-from models import db, User, Subscription, Transaction, Product
+from models import db, User, Subscription, Transaction
 from sqlalchemy import func
+from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -24,47 +24,22 @@ def load_user(user_id):
 def index():
     return render_template('index.html')
 
-@app.route('/marketplace')
-def marketplace():
-    products = Product.query.all()
-    return render_template('marketplace.html', products=products)
-
-@app.route('/educational_resources')
-def educational_resources():
-    # Add your educational resources logic here
-    return render_template('educational_resources.html')
-
-@app.route('/change_subscription', methods=['POST'])
-@login_required
-def change_subscription():
-    new_tier = request.form.get('new_tier')
-    if new_tier not in ['free', 'pro', 'premium']:
-        flash('Invalid subscription tier.')
-        return redirect(url_for('profile'))
-
-    subscription = Subscription.query.filter_by(name=new_tier).first()
-    if not subscription:
-        flash('Subscription tier not found.')
-        return redirect(url_for('profile'))
-
-    current_user.start_subscription(new_tier, subscription.price)
-    db.session.commit()
-
-    flash(f'Your subscription has been updated to {new_tier}.')
-    return redirect(url_for('profile'))
-
-@app.route('/cancel_subscription', methods=['POST'])
-@login_required
-def cancel_subscription():
-    current_user.cancel_subscription()
-    db.session.commit()
-    flash('Your subscription has been canceled.')
-    return redirect(url_for('profile'))
-
 @app.route('/profile')
 @login_required
 def profile():
     return render_template('profile.html')
+
+@app.route('/marketplace')
+def marketplace():
+    # Add logic to fetch products or other marketplace data
+    products = []  # Replace this with actual product data
+    return render_template('marketplace.html', products=products)
+
+@app.route('/educational_resources')
+def educational_resources():
+    # Add logic to fetch educational resources
+    resources = []  # Replace this with actual resource data
+    return render_template('educational_resources.html', resources=resources)
 
 @app.route('/admin/mrr_dashboard')
 @login_required
@@ -73,17 +48,23 @@ def mrr_dashboard():
         flash('You do not have permission to access this page.')
         return redirect(url_for('index'))
 
-    mrr = User.calculate_total_mrr()
-    arr = mrr * 12
-    
-    subscription_breakdown = db.session.query(User.subscription_tier, func.count(User.id)).group_by(User.subscription_tier).all()
-    revenue_by_tier = db.session.query(Subscription.name, func.sum(User.mrr)).join(User, User.subscription_tier == Subscription.name).group_by(Subscription.name).all()
+    total_mrr = User.calculate_total_mrr()
+    total_users = User.query.count()
+    paying_users = User.query.filter(User.subscription_tier != 'free').count()
+    arpu = total_mrr / total_users if total_users > 0 else 0
 
-    return render_template('admin/mrr_dashboard.html', 
-                           mrr=mrr,
-                           arr=arr,
-                           subscription_breakdown=subscription_breakdown,
-                           revenue_by_tier=revenue_by_tier)
+    subscription_breakdown = db.session.query(
+        User.subscription_tier,
+        func.count(User.id).label('count'),
+        func.sum(User.mrr).label('revenue')
+    ).group_by(User.subscription_tier).all()
+
+    return render_template('admin/mrr_dashboard.html',
+                           total_mrr=total_mrr,
+                           total_users=total_users,
+                           paying_users=paying_users,
+                           arpu=arpu,
+                           subscription_breakdown=subscription_breakdown)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

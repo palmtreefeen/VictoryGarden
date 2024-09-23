@@ -1,44 +1,35 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Monthly Recurring Revenue Dashboard</h2>
+<h1>Monthly Recurring Revenue Dashboard</h1>
 
-<div class="metrics-grid">
-    <div class="metric-card">
-        <h3>Monthly Recurring Revenue (MRR)</h3>
-        <p class="metric-value">${{ "%.2f"|format(mrr) }}</p>
-    </div>
-    <div class="metric-card">
-        <h3>Annual Recurring Revenue (ARR)</h3>
-        <p class="metric-value">${{ "%.2f"|format(arr) }}</p>
-    </div>
+<div class="mrr-summary">
+    <h2>Summary</h2>
+    <p>Total MRR: ${{ "%.2f"|format(total_mrr) }}</p>
+    <p>Total Users: {{ total_users }}</p>
+    <p>Paying Users: {{ paying_users }}</p>
+    <p>ARPU: ${{ "%.2f"|format(arpu) }}</p>
 </div>
 
-<div class="data-grid">
-    <div class="data-card">
-        <h3>Subscription Tier Breakdown</h3>
-        <ul>
-        {% for tier, count in subscription_breakdown %}
-            <li>{{ tier }}: {{ count }} users</li>
-        {% endfor %}
-        </ul>
-    </div>
-    <div class="data-card">
-        <h3>Revenue by Subscription Tier</h3>
-        <ul>
-        {% for tier, revenue in revenue_by_tier %}
-            <li>{{ tier }}: ${{ "%.2f"|format(revenue) }}</li>
-        {% endfor %}
-        </ul>
-    </div>
+<div class="subscription-breakdown">
+    <h2>Subscription Breakdown</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Tier</th>
+                <th>Users</th>
+                <th>Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tier, count, revenue in subscription_breakdown %}
+            <tr>
+                <td>{{ tier }}</td>
+                <td>{{ count }}</td>
+                <td>${{ "%.2f"|format(revenue) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // You can add JavaScript here to create charts using Chart.js
-    // For example, you could create a pie chart for subscription breakdown
-    // or a bar chart for revenue by tier
-</script>
 {% endblock %}
